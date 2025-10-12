@@ -1,0 +1,40 @@
+dealership-rag/
+├── README.md                    # Setup guide, architecture overview, usage examples
+├── requirements.txt             # Pinned dependencies (langchain==0.3.27, etc.)
+├── Dockerfile                   # Python 3.12 image, FastAPI entrypoint
+├── docker-compose.yml           # Multi-container orchestration
+├── .env.example                 # API key templates, config vars
+├── .gitignore                   # Secrets, __pycache__, .env
+├── .github/
+│   └── workflows/
+│       └── ci.yml               # Run pytest on push, coverage reports
+├── src/
+│   ├── __init__.py
+│   ├── config.py                # Load env vars (VOYAGE_API_KEY, CLAUDE_API_KEY, etc.)
+│   ├── dms/
+│   │   ├── __init__.py
+│   │   ├── base.py              # Abstract DMS adapter interface
+│   │   ├── cdk_adapter.py       # CDK Global API connector
+│   │   ├── reynolds_adapter.py  # Reynolds & Reynolds connector
+│   │   └── mock_adapter.py      # Demo data generator for POC
+│   ├── ingest.py                # PDF/CSV/JSON loaders, RecursiveCharacterTextSplitter (chunk_size=1000, overlap=200)
+│   ├── embed.py                 # Voyage embeddings, Pinecone upsert with metadata filters
+│   ├── retrieve.py              # EnsembleRetriever (vector + BM25), Cohere re-rank, top-k=5
+│   ├── generate.py              # Claude prompt templates, source citation logic
+│   ├── agent.py                 # LangChain agent: query router, tool calling for DMS APIs
+│   ├── app.py                   # FastAPI app: /ingest, /query, /health endpoints (async)
+│   └── models.py                # Pydantic v2 models for requests/responses
+├── data/
+│   ├── sample_inventory.json    # 50+ demo vehicles (VIN, make, model, price, specs)
+│   ├── sample_policies.pdf      # Financing/warranty docs
+│   ├── service_manual.pdf       # Technical service bulletin samples
+│   └── faqs.txt                 # Common customer questions
+├── tests/
+│   ├── __init__.py
+│   ├── test_ingest.py           # Mock PDF processing
+│   ├── test_retrieve.py         # Mock embeddings, assert relevance
+│   ├── test_agent.py            # Edge case: "torque on fictional car" → "No data"
+│   └── conftest.py              # Pytest fixtures
+└── docs/
+    ├── architecture.png         # System diagram (Draw.io export)
+    └── API.md                   # OpenAPI spec (auto-generated from FastAPI)
