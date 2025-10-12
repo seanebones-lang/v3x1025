@@ -1,9 +1,3 @@
-# Production Dealership RAG System
-
-Enterprise-grade Retrieval-Augmented Generation (RAG) system tailored for automotive dealerships. Integrates with Dealer Management Systems (DMS) like CDK Global, Reynolds & Reynolds, and Dealertrack for real-time inventory pulls, customer queries, sales assistance, and service documentation. Built on 2025 best practices: branched agentic architecture for dynamic workflows, hybrid retrieval for precision, and multimodal-ready for car images or EVs. Anti-hallucination safeguards ensure factual responses—perfect for boosting sales conversions and service efficiency without the BS.
-
-This project's your golden ticket, Sean—modular code for easy handoff, full tests, and a Docker setup that deploys in minutes. It handles fuzzy queries like "Low-mileage EVs under 40k?" or pulls VIN specs without fabricating details. Extensible for predictive maintenance or tariff impacts.
-
 ## Key Features
 - **Real-Time DMS Integration**: Adapters for major systems; mock mode for demos.
 - **Hybrid Retrieval**: Vector (Pinecone) + keyword (BM25) with Cohere re-rank for spot-on results.
@@ -34,3 +28,51 @@ This project's your golden ticket, Sean—modular code for easy handoff, full te
 
 ### Installation
 1. Clone the repo:
+git clone https://your-repo-url/dealership-rag.git
+cd dealership-rag
+text2. Set up environment:
+cp .env.example .env
+Edit .env with your API keys and DMS configs
+text3. Install dependencies:
+pip install -r requirements.txt
+text4. Build and run with Docker:
+docker-compose up --build
+textThe app runs on `http://localhost:8000`. Check `/docs` for OpenAPI swagger.
+
+## Usage
+### Ingest Data
+Upload docs or sync DMS:
+curl -X POST http://localhost:8000/api/ingest -F "file=@data/sample_inventory.json"
+textTriggers embedding and indexing.
+
+### Query the System
+Ask away:
+curl -X POST http://localhost:8000/api/query 
+-H "Content-Type: application/json" 
+-d '{"query": "What low-mileage Camrys are in stock?"}'
+textResponse: Factual answer with sources, e.g., "2024 Toyota Camry LE, VIN: XYZ, 12k miles, $28k [Source: Inventory DMS]".
+
+### Health Check
+curl http://localhost:8000/api/health
+text## Demo Data
+- `data/sample_inventory.json`: 50+ vehicles with specs.
+- PDFs: Policies, manuals, FAQs.
+- Run `python src/ingest.py --demo` to preload.
+
+## Development & Testing
+- Run tests: `pytest --cov=src`
+- Monitor: Integrate LangSmith for traces.
+- Extend: Swap DMS adapters in `src/dms/` or add agents in `src/agent.py`.
+
+## Architecture Overview
+![Architecture Diagram](docs/architecture.png)
+
+High-level: Query → Router → Retrieve (hybrid) → Re-rank → Generate (Claude) → Respond.
+
+## Contributing
+Fork, PR, or ping for collabs. Focus on automotive edge cases.
+
+## License
+MIT—free to tweak for your dealership empire.
+
+Built by Sean McDonnell 10/10/2025
