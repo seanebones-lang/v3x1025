@@ -1,0 +1,300 @@
+Production Dealership RAG System
+(Improved Audit - October 12, 2025)
+Executive Summary
+Enterprise RAG system optimized for automotive dealerships, featuring real-time DMS
+integration for customer queries, sales, and service. Designed per latest 2025 best practices:
+agentic for dynamic workflows, hybrid retrieval for accuracy, and multimodal-ready for visuals
+like car images. Modular and testable for seamless handoff to engineering teams. Enhanced with
+2025 trends: predictive analytics for inventory/ maintenance, EV-specific data handling.
+Architecture: Branched Agentic RAG
+Query Flow: User input → Intent classifier → Route to specialized agent (Sales/Service/
+Inventory) → Hybrid retrieval → Cohere re-rank → Claude generation with source citations →
+Response + fallback handling. Added self-improving feedback loop for iterative refinement,
+aligning with 2025 trends. Integrated predictive agents for trends like EV stock forecasting or
+maintenance alerts.
+Key Design Principles:
+• DMS-first: Patterns for CDK Global, Reynolds & Reynolds, Dealertrack, plus vAuto for
+inventory—top systems in 2025.
+• Modular loaders for data silos (inventory DB, PDF manuals, CRM exports)
+• Anti-hallucination: Strict context-only responses, source attribution
+• Performance: <2s latency, Redis caching, async operations
+• Handoff-ready: Docker containerized, full test coverage, OpenAPI docs
+• 2025 Additions: Multimodal support (e.g., CLIP for image queries), edge deployment
+hooks for mobile dealership apps; Hosted Inference in Pinecone for on-the-fly
+embeddings.
+Technology Stack (2025 Production Standard)
+Compo
+nent Choice Rationale Fallback Option
+LangCh
+Orchest
+ain
+ration
+0.3.27
+Latest end-to-end RAG pipelines (Oct 10,
+2025), proven in automotive AI (Impel),
+Haystack, LlamaIndex
+DMS integrations; supports agentic trends.
+SOTA retrieval, beats OpenAI on
+benchmarks, handles automotive jargon
+Embed
+dings
+Voyage-
+3.5-large
+("trim levels", Spanish); low dim for
+efficiency. Enhanced with Pinecone Hosted
+Inference for seamless integration.
+NV-Embed-v2 (NVIDIA—
+new generalist SOTA),
+EmbeddingGemma (Google),
+OpenAI text-embedding-3-
+large, BGE-M3
+Vector
+DB
+Pinecon
+e
+(serverle
+ss)
+Managed scaling, hybrid search, production-
+proven for RAG; latest API 2025-04 with
+Hosted Inference for direct embeddings.
+Qdrant (self-hosted),
+Weaviate (multimodal)
+Compo
+nent Choice Rationale Fallback Option
+Orchest
+ration
+LangCh
+ain
+0.3.27
+Latest end-to-end RAG pipelines (Oct 10,
+2025), proven in automotive AI (Impel),
+Haystack, LlamaIndex
+DMS integrations; supports agentic trends.
+SOTA retrieval, beats OpenAI on
+benchmarks, handles automotive jargon
+Embed
+dings
+Voyage-
+3.5-large
+("trim levels", Spanish); low dim for
+efficiency. Enhanced with Pinecone Hosted
+Inference for seamless integration.
+NV-Embed-v2 (NVIDIA—
+new generalist SOTA),
+EmbeddingGemma (Google),
+OpenAI text-embedding-3-
+large, BGE-M3
+Vector
+DB
+LLM
+Re-
+ranker
+Doc
+Parsing
+API
+Backen
+d
+Observ
+ability
+Infrastr
+ucture
+Pinecon
+e
+(serverle
+ss)
+Claude-
+4.5-
+sonnet
+Cohere
+Rerank
+v3.5
+Unstruct
+ured.io
++
+SQLAlc
+hemy
+FastAPI
+0.119.0
+LangSm
+ith +
+Pytest
+Docker
++
+GitHub
+Actions
+Managed scaling, hybrid search, production-
+proven for RAG; latest API 2025-04 with
+Hosted Inference for direct embeddings.
+Qdrant (self-hosted),
+Weaviate (multimodal)
+Latest (Sep 29, 2025): 1M+ token context,
+top reasoning/coding, low hallucination for
+factual automotive data; excels in agents.
+Latest (2025 boost): Precision on noisy data
+(reviews, manuals), LangChain integration;
+improved relevancy over v3.
+GPT-4o, Qwen-2.5-Max
+bge-reranker-large
+Latest features for complex PDF layouts
+(service manuals), DMS SQL/API; built-in
+chunking/embedding for RAG.
+PyPDF2 (fallback)
+Latest async (Oct 10, 2025), auto OpenAPI
+docs, lightweight, Docker-ready; supports
+Pydantic v1/v2 dual models.
+Flask
+Hallucination tracking, latency monitoring,
+80%+ test coverage Prometheus + RAGAS
+Containerized deployment, CI/CD for tests,
+Python 3.12 base Kubernetes (scale-up)
+Cost Estimate: $50-100/month (dev environment with Pinecone free tier, Voyage/Claude pay-
+per-use ~$0.01/query)—unchanged, but Hosted Inference could trim embedding costs further.
+Repository Structure
+(Unchanged—still clean. Added hosted_inference.py under src/embed/ for Pinecone feature.)
+text
+dealership-rag/
+├── README.md # Setup guide, architecture
+overview, usage examples
+├── requirements.txt # Pinned dependencies
+(langchain==0.3.27, etc.)
+├── Dockerfile # Python 3.12 image, FastAPI
+entrypoint
+├── docker-compose.yml # Multi-container orchestration
+├── .env.example # API key templates, config vars
+├── .gitignore # Secrets, __pycache__, .env ├── .github/
+│ └── workflows/
+│ └── ci.yml # Run pytest on push, coverage
+reports
+├── src/
+│ ├── __init__.py
+│ ├── config.py # Load env vars (VOYAGE_API_KEY,
+CLAUDE_API_KEY, etc.) │ ├── dms/
+│ │ ├── __init__.py
+│ │ ├── base.py # Abstract DMS adapter interface
+│ │ ├── cdk_adapter.py # CDK Global API connector
+│ │ ├── reynolds_adapter.py # Reynolds & Reynolds connector
+│ │ └── mock_adapter.py # Demo data generator for POC
+│ ├── ingest.py # PDF/CSV/JSON loaders,
+RecursiveCharacterTextSplitter (chunk_size=1000, overlap=200) │ ├── embed.py # Voyage embeddings, Pinecone
+upsert with metadata filters
+│ ├── retrieve.py # EnsembleRetriever (vector +
+BM25), Cohere re-rank, top-k=5
+│ ├── generate.py # Claude prompt templates, source
+citation logic
+│ ├── agent.py # LangChain agent: query router,
+tool calling for DMS APIs
+│ ├── app.py # FastAPI app: /ingest, /query, /
+health endpoints (async)
+│ └── models.py # Pydantic v2 models for
+requests/responses
+├── data/
+│ ├── sample_inventory.json # 50+ demo vehicles (VIN, make,
+model, price, specs)
+│ ├── sample_policies.pdf # Financing/warranty docs
+│ ├── service_manual.pdf # Technical service bulletin
+samples
+│ └── faqs.txt # Common customer questions
+├── tests/
+│ ├── __init__.py
+│ ├── test_ingest.py # Mock PDF processing
+│ ├── test_retrieve.py # Mock embeddings, assert
+relevance
+│ ├── test_agent.py # Edge case: "torque on fictional
+car" → "No data"
+│ └── conftest.py └── docs/
+├── architecture.png └── API.md from FastAPI)
+# Pytest fixtures
+# System diagram (Draw.io export)
+# OpenAPI spec (auto-generated
+Core Implementation Details
+(Enhanced with Hosted Inference, v3.5 rerank, and predictive agents.)
+1. DMS Integration Layer (src/dms/)
+• Adapter Pattern: Abstract base class with get_inventory(), get_vehicle_details(vin),
+sync_pricing()
+• CDK/Reynolds Connectors: REST API clients with retry logic, schema validation
+(Pydantic)
+• Mock Adapter: Generates realistic demo data (50 vehicles, pricing, specs) for POC
+• Celery Workers: Scheduled tasks for hourly inventory sync, daily document re-indexing
+(Redis backend)—still solid, but note RQ for lighter async if needed.
+• 2025 Add: Predictive hooks for EV trends (e.g., battery health queries).
+2. Document Ingestion (src/ingest.py)
+• Multi-format Loaders: UnstructuredLoader (PDFs—latest for complex layouts),
+CSVLoader (inventory exports), JSONLoader (API responses), SQLLoader (DMS
+queries)
+• Chunking Strategy: RecursiveCharacterTextSplitter optimized for automotive docs
+(chunk_size=1000, overlap=200)
+• Metadata Extraction: document_type (manual/policy/inventory), source_system (DMS/
+upload), VIN, model_year, timestamp
+• Scheduled Updates: Celery beat job triggers hourly DMS sync, daily PDF re-indexing
+• 2025 Add: Multimodal chunking for images in PDFs (e.g., car photos); EV-specific
+metadata (e.g., range, charging).
+3. Embedding & Vector Store (src/embed.py)
+• Voyage API: text-embedding-3.5-large for chunk embeddings (3072 dimensions)—still
+SOTA, but test NV-Embed-v2 for generalist boosts.
+• Pinecone Index: Hybrid search enabled, metadata filters (WHERE model_year=2024),
+namespace separation (sales/service/inventory)
+• Upsert Logic: Batch processing (100 chunks at a time), deduplication by content hash
+• 2025 Add: Integrate Hosted Inference—generate embeddings directly in Pinecone
+workflow, reducing API hops and latency.
+4. Agentic Retrieval Engine (src/retrieve.py, src/agent.py)
+• Query Router: Zero-shot classifier → Sales Agent (pricing, comparisons) | Service Agent
+(repairs, manuals) | Inventory Agent (availability, specs) | Predictive Agent (EV forecasts,
+maintenance risks)
+• Hybrid Retrieval: EnsembleRetriever combines Pinecone vector search + BM25 (exact
+matches on VINs, prices, part numbers)
+• Re-ranking: Cohere Rerank v3.5 boosts top 20 → top 5 most relevant chunks
+• Tool Calling: LangChain agent can call DMS API tools for real-time data (e.g., "Check if
+VIN 1HGBH41JXMN109186 is in stock")
+• Fallback Logic: No relevant docs → "I don't have that information" | Ambiguous →
+DMS API call | Complex → Transfer to human
+• 2025 Add: Context-aware feedback loop for self-refinement; EV-specific tools (e.g., tariff
+impacts).
+5. Generation (src/generate.py)
+• Claude Prompt Template: (Unchanged—fits Sonnet 4.5's strengths.)
+• Source Attribution: Parse Claude response, append clickable source links
+• Conversation Memory: Store last 5 turns in Redis for multi-turn dialogues
+6. FastAPI Backend (src/app.py)
+• Endpoints: (Unchanged.)
+• Async Operations: All I/O operations use async/await for concurrency
+• Rate Limiting: Redis-backed limiter (100 req/min per IP)
+• API Key Auth: Bearer token validation (env var: API_SECRET_KEY)
+7. Testing & Quality (tests/)
+• Unit Tests: Mock Voyage/Claude APIs, assert chunking logic, retrieval relevance
+• Integration Tests: End-to-end query flow with mock DMS data
+• Edge Cases: (Unchanged.)
+• Coverage Target: 80%+ (pytest-cov report)
+• 2025 Add: Tests for Hosted Inference and predictive agents.
+8. Observability (LangSmith, Sentry)
+• LangSmith Tracing: Every query logged with retrieval chunks, LLM prompt, response,
+latency
+• Hallucination Detection: Flag responses with low source overlap
+• Metrics Dashboard: Average latency, cache hit rate, error rate, cost per query
+• Alerts: Sentry for exceptions, latency spikes >3s
+Sample Data (data/)
+(Unchanged, but add EV samples like battery specs.)
+Security & Compliance
+(Unchanged—GDPR-ready aligns with enterprise trends.)
+Success Metrics
+(Unchanged.)
+Implementation Roadmap
+(Unchanged, but add Day 4.5: Integrate Hosted Inference and v3.5 rerank.)
+Deployment Instructions (For Their Engineers)
+(Update FastAPI version in requirements.txt; otherwise unchanged.)
+Next Steps After Handoff
+1 DMS Credentials: Replace mock adapter with real CDK/Reynolds API keys
+2 Production Hosting: Deploy to AWS/GCP with autoscaling
+3 UI Development: Build custom React/Next.js frontend (we provide Streamlit demo)
+4 Fine-tuning: Add dealership-specific terminology to embeddings
+5 Multimodal: Add vehicle image search (CLIP embeddings → Weaviate)
+6 2025 Edge: Explore on-device RAG for mobile apps; activate Hosted Inference for
+embeddings; pilot predictive EV/maintenance agents.
+Why This Will Impress Tom & Dom
+• Industry-specific: Built for automotive, not generic RAG—ties into 2025 trends like
+predictive maintenance AI and EV optimization.
+• Production patterns: DMS adapters, Celery workers, Redis caching
+• Enterprise tech: Pinecone with Hosted Inference, Claude 4.5, Cohere v3.5 (not toy
+open-source models)
+• Extensibility: Modular design, easy to swap components
+• Documentation: README, API docs, architecture diagram, test coverage
+• Handoff-ready: Docker one-liner, no complex setup
+• Demo-capable: Works out of the box with sample data, shows value immediately
