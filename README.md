@@ -386,6 +386,15 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 - **Connection Pooling**: Database connections are reused
 - **Streaming**: Long responses streamed to reduce latency
 
+## ⚠️ Known Limitations
+
+- **DMS API Assumptions**: Assumes DMS APIs are open or use simple token auth. Add OAuth2 flow if your DMS requires it.
+- **Embedding Latency**: Default setup uses Voyage API directly. Enable Hosted Inference in Pinecone for 30-50% latency reduction.
+- **Mock Data Scale**: Mock adapter includes 50 vehicles. Production DMS will have thousands—ensure proper pagination.
+- **Single-Language**: Currently English-only. Multi-language support requires translation layer.
+- **Context Window**: Claude 4.5 has 1M token context, but cost scales. Consider summarization for very long conversations.
+- **Real-Time Sync**: DMS sync is scheduled (hourly). For true real-time, implement webhooks from your DMS.
+
 ## 🔒 Security
 
 - API key authentication via Bearer token
@@ -394,6 +403,7 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 - SQL injection protection
 - CORS configuration for production
 - Environment variable secrets (never commit `.env`)
+- **Security Scanning**: Run `pip install bandit safety` then `bandit -r src/` and `safety check`
 
 ## 📄 License
 

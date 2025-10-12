@@ -1,0 +1,313 @@
+{
+  "info": {
+    "name": "Dealership RAG API",
+    "description": "Complete API collection for testing the Dealership RAG system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "dealership-rag-v1"
+  },
+  "item": [
+    {
+      "name": "Health & Status",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Check system health and service availability"
+          },
+          "response": []
+        },
+        {
+          "name": "System Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/metrics",
+              "host": ["{{base_url}}"],
+              "path": ["api", "metrics"]
+            },
+            "description": "Get system performance metrics"
+          },
+          "response": []
+        },
+        {
+          "name": "Detailed Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stats"]
+            },
+            "description": "Get detailed system statistics"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Query Operations",
+      "item": [
+        {
+          "name": "Basic Query - Inventory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What Toyota vehicles do you have available?\",\n  \"include_sources\": true,\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/query",
+              "host": ["{{base_url}}"],
+              "path": ["api", "query"]
+            },
+            "description": "Query for available Toyota vehicles"
+          },
+          "response": []
+        },
+        {
+          "name": "Price Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"How much does the Toyota Camry cost?\",\n  \"include_sources\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/query",
+              "host": ["{{base_url}}"],
+              "path": ["api", "query"]
+            },
+            "description": "Query for vehicle pricing"
+          },
+          "response": []
+        },
+        {
+          "name": "Filtered Query - Electric Vehicles",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Show me electric vehicles under $50,000\",\n  \"filters\": {\n    \"fuel_type\": \"Electric\"\n  },\n  \"include_sources\": true,\n  \"top_k\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/query",
+              "host": ["{{base_url}}"],
+              "path": ["api", "query"]
+            },
+            "description": "Query with metadata filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Service Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"How often should I get an oil change?\",\n  \"include_sources\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/query",
+              "host": ["{{base_url}}"],
+              "path": ["api", "query"]
+            },
+            "description": "Query for service information"
+          },
+          "response": []
+        },
+        {
+          "name": "FAQ Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What are your hours of operation?\",\n  \"include_sources\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/query",
+              "host": ["{{base_url}}"],
+              "path": ["api", "query"]
+            },
+            "description": "Query for general information"
+          },
+          "response": []
+        },
+        {
+          "name": "Query with Conversation ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Tell me more about financing options\",\n  \"conversation_id\": \"{{conversation_id}}\",\n  \"include_sources\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/query",
+              "host": ["{{base_url}}"],
+              "path": ["api", "query"]
+            },
+            "description": "Multi-turn conversation query"
+          },
+          "response": []
+        },
+        {
+          "name": "Streaming Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Explain your warranty policy in detail\",\n  \"stream\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/query/stream",
+              "host": ["{{base_url}}"],
+              "path": ["api", "query", "stream"]
+            },
+            "description": "Stream response for long answers"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ingestion Operations",
+      "item": [
+        {
+          "name": "Ingest Text",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source_type\": \"text\",\n  \"content\": \"2025 Honda Accord EX-L, VIN: 1HGCV1F46MA123456, Price: $32,500, Mileage: 5,000 miles, Color: Crystal Black Pearl\",\n  \"metadata\": {\n    \"type\": \"vehicle\",\n    \"make\": \"Honda\",\n    \"model\": \"Accord\",\n    \"year\": 2025\n  },\n  \"namespace\": \"inventory\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ingest",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ingest"]
+            },
+            "description": "Ingest text content"
+          },
+          "response": []
+        },
+        {
+          "name": "Ingest File",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/your/file.pdf"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ingest/file?namespace=default",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ingest", "file"],
+              "query": [
+                {
+                  "key": "namespace",
+                  "value": "default"
+                }
+              ]
+            },
+            "description": "Upload and ingest a file"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Management Operations",
+      "item": [
+        {
+          "name": "Clear Namespace",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/index/test",
+              "host": ["{{base_url}}"],
+              "path": ["api", "index", "test"]
+            },
+            "description": "Clear all documents from a namespace"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "conversation_id",
+      "value": "conv-{{$randomUUID}}",
+      "type": "string"
+    }
+  ]
+}
+

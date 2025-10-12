@@ -18,8 +18,16 @@ from src.config import settings
 class EmbeddingManager:
     """Manages embedding generation and vector store operations."""
     
-    def __init__(self):
-        """Initialize embedding manager with Voyage and Pinecone."""
+    def __init__(self, use_hosted_inference: bool = False):
+        """
+        Initialize embedding manager with Voyage and Pinecone.
+        
+        Args:
+            use_hosted_inference: If True, use Pinecone Hosted Inference for embeddings
+                                 (30-50% latency reduction as of Oct 2025)
+        """
+        self.use_hosted_inference = use_hosted_inference
+        
         # Initialize Voyage embeddings
         self.voyage_client = voyageai.Client(api_key=settings.voyage_api_key)
         self.embeddings = VoyageEmbeddings(

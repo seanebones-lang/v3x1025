@@ -3,6 +3,7 @@ Agentic RAG system with intent classification and tool calling.
 Routes queries to specialized agents for sales, service, inventory, and predictive tasks.
 """
 
+import logging
 from typing import Dict, Any, List, Optional, Literal
 from enum import Enum
 
@@ -10,6 +11,10 @@ from anthropic import AsyncAnthropic
 from langchain.schema import Document
 
 from src.config import settings
+
+# Configure logging for production tracing
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 from src.models import AgentIntent, AgentAction
 from src.dms import MockDMSAdapter, CDKAdapter, ReynoldsAdapter, BaseDMSAdapter
 from src.retrieve import HybridRetriever
@@ -261,11 +266,15 @@ Example: SALES|0.95"""
         """
         intent_type = IntentType(intent.intent)
         
+        # Log tool call for production tracing
+        logger.info(f"DMS tool call initiated - Intent: {intent_type.value}, Query: {query[:50]}...")
+        
         try:
             if intent_type == IntentType.INVENTORY:
                 # Extract vehicle filters from query (simplified)
                 filters = self._extract_vehicle_filters(query)
                 vehicles = await self.dms_adapter.get_inventory(filters=filters, limit=10)
+                logger.info(f"DMS inventory retrieved: {len(vehicles)} vehicles with filters {filters}")
                 return {
                     "tool": "get_inventory",
                     "result": [v.model_dump() for v in vehicles[:5]]
