@@ -112,7 +112,7 @@ class EmbeddingManager:
     
     async def _get_embeddings(self, texts: List[str]) -> List[List[float]]:
         """
-        Get embeddings from Voyage AI.
+        Get embeddings from Voyage AI with rate limit handling.
         
         Args:
             texts: List of text strings
@@ -120,16 +120,28 @@ class EmbeddingManager:
         Returns:
             List of embedding vectors
         """
-        try:
-            # Use Voyage API directly for better control
-            response = self.voyage_client.embed(
+        from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+        import asyncio
+        
+        @retry(
+            stop=stop_after_attempt(5),
+            wait=wait_exponential(multiplier=1, min=2, max=30),
+            retry_if_exception_type=(Exception,),
+            reraise=True
+        )
+        async def _embed_with_retry():
+            return await asyncio.to_thread(
+                self.voyage_client.embed,
                 texts,
                 model="voyage-3.5-large",
                 input_type="document"
             )
+        
+        try:
+            response = await _embed_with_retry()
             return response.embeddings
         except Exception as e:
-            raise Exception(f"Failed to generate embeddings: {str(e)}")
+            raise Exception(f"Failed to generate embeddings after retries: {str(e)}")
     
     async def upsert_vectors(
         self,

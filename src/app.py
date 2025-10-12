@@ -352,19 +352,39 @@ async def ingest_file(
     background_tasks: BackgroundTasks = None
 ):
     """
-    Upload and ingest a file.
+    Upload and ingest a file with security validation.
     For large files (>10MB), processing is queued to Celery to avoid blocking.
     """
     import tempfile
     import os
     
+    # Security: Validate file type and size
+    MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB limit
+    ALLOWED_EXTENSIONS = {'.pdf', '.txt', '.csv', '.json', '.docx', '.md'}
+    
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File type not allowed: {file_ext}. Allowed: {ALLOWED_EXTENSIONS}"
+        )
+    
     try:
         file_size = 0
         
-        # Save uploaded file temporarily
+        # Save uploaded file temporarily with size validation
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
             content = await file.read()
             file_size = len(content)
+            
+            # Security: Check file size
+            if file_size > MAX_FILE_SIZE:
+                raise HTTPException(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    detail=f"File too large: {file_size} bytes. Max: {MAX_FILE_SIZE} bytes"
+                )
+            
             tmp.write(content)
             tmp_path = tmp.name
         

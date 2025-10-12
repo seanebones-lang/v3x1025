@@ -4,7 +4,8 @@ Pydantic models for API requests, responses, and internal data structures.
 
 from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, field_validator
+import re
 
 
 # ============================================================================
@@ -20,6 +21,18 @@ class QueryRequest(BaseModel):
     top_k: Optional[int] = Field(None, ge=1, le=50, description="Number of results to return")
     include_sources: bool = Field(True, description="Include source documents in response")
     stream: bool = Field(False, description="Stream the response")
+    
+    @field_validator('query')
+    @classmethod
+    def sanitize_query(cls, v: str) -> str:
+        """Sanitize query input to prevent XSS and injection attacks."""
+        # Remove potentially dangerous characters
+        sanitized = re.sub(r'[<>]', '', v)
+        # Trim whitespace
+        sanitized = sanitized.strip()
+        # Remove multiple spaces
+        sanitized = re.sub(r'\s+', ' ', sanitized)
+        return sanitized
 
 
 class SourceDocument(BaseModel):

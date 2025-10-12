@@ -142,7 +142,8 @@ Example: SALES|0.95"""
     async def process_query(
         self,
         query: str,
-        conversation_history: Optional[List[Dict[str, str]]] = None
+        conversation_history: Optional[List[Dict[str, str]]] = None,
+        max_tokens: int = 100000
     ) -> Dict[str, Any]:
         """
         Process a query through the agentic RAG pipeline.

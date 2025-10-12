@@ -10,13 +10,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Main application settings loaded from environment variables."""
+    """Main application settings loaded from environment variables with validation."""
     
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
-        extra="ignore"
+        extra="ignore",
+        validate_default=True
     )
     
     # API Keys - LLM & Embeddings

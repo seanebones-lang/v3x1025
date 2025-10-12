@@ -93,9 +93,10 @@ Your Answer:"""
         # Build messages
         messages = []
         
-        # Add conversation history if available
+        # Add conversation history if available (truncate to last 5 turns to avoid token blowout)
         if conversation_history:
-            messages.extend(conversation_history)
+            truncated_history = conversation_history[-10:]  # Last 5 turns = 10 messages (user + assistant)
+            messages.extend(truncated_history)
         
         # Add current query
         messages.append({

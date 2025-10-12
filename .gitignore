@@ -51,6 +51,17 @@ htmlcov/
 *.swo
 *~
 .DS_Store
+.vscode-test/
+.fleet/
+*.sublime-project
+*.sublime-workspace
+
+# OS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
 
 # Docker
 *.log
