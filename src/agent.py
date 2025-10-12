@@ -273,33 +273,33 @@ Example: SALES|0.95"""
         try:
             # Wrap in timeout to prevent hangs on slow DMS
             async with asyncio.timeout(10.0):  # 10 second timeout for DMS calls
-            if intent_type == IntentType.INVENTORY:
-                # Extract vehicle filters from query (simplified)
-                filters = self._extract_vehicle_filters(query)
-                vehicles = await self.dms_adapter.get_inventory(filters=filters, limit=10)
-                logger.info(f"DMS inventory retrieved: {len(vehicles)} vehicles with filters {filters}")
-                return {
-                    "tool": "get_inventory",
-                    "result": [v.model_dump() for v in vehicles[:5]]
-                }
-            
-            elif intent_type == IntentType.SERVICE:
-                # For service queries, get sample service data
-                # In production, would extract VIN from query
-                return {
-                    "tool": "service_info",
-                    "result": "Service information retrieved from DMS"
-                }
-            
-            elif intent_type == IntentType.SALES:
-                # Get sales-related data
-                vehicles = await self.dms_adapter.get_inventory(limit=5)
-                return {
-                    "tool": "sales_inventory",
-                    "result": [v.model_dump() for v in vehicles]
-                }
-            
-            return None
+                if intent_type == IntentType.INVENTORY:
+                    # Extract vehicle filters from query (simplified)
+                    filters = self._extract_vehicle_filters(query)
+                    vehicles = await self.dms_adapter.get_inventory(filters=filters, limit=10)
+                    logger.info(f"DMS inventory retrieved: {len(vehicles)} vehicles with filters {filters}")
+                    return {
+                        "tool": "get_inventory",
+                        "result": [v.model_dump() for v in vehicles[:5]]
+                    }
+                
+                elif intent_type == IntentType.SERVICE:
+                    # For service queries, get sample service data
+                    # In production, would extract VIN from query
+                    return {
+                        "tool": "service_info",
+                        "result": "Service information retrieved from DMS"
+                    }
+                
+                elif intent_type == IntentType.SALES:
+                    # Get sales-related data
+                    vehicles = await self.dms_adapter.get_inventory(limit=5)
+                    return {
+                        "tool": "sales_inventory",
+                        "result": [v.model_dump() for v in vehicles]
+                    }
+                
+                return None
         except asyncio.TimeoutError:
             logger.error(f"DMS tool call timeout after 10s - Intent: {intent_type.value}")
             return {
