@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2025-10-12
 
-### 🎉 Initial Release
+###  Initial Release
 
 #### Added
 
@@ -127,15 +127,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 5 specialized agents
 - 10+ API endpoints
 
-### 📝 Notes
+###  Notes
 
 This release represents a complete, production-ready RAG system built to 2025 best practices. The system is:
-- ✅ Fully containerized and deployable
-- ✅ Thoroughly tested
-- ✅ Comprehensively documented
-- ✅ Ready for enterprise handoff
+-  Fully containerized and deployable
+-  Thoroughly tested
+-  Comprehensively documented
+-  Ready for enterprise handoff
 
-### 🎯 Next Steps
+###  Next Steps
 
 See roadmap in README.md for planned enhancements including:
 - Multimodal support (vehicle images)

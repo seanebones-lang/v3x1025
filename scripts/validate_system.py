@@ -19,7 +19,7 @@ def print_header(text):
 
 def check_mark(passed):
     """Return check mark or X."""
-    return "✅" if passed else "❌"
+    return "" if passed else ""
 
 
 def check_python_version():
@@ -31,7 +31,7 @@ def check_python_version():
     passed = version >= required
     print(f"{check_mark(passed)} Python {version.major}.{version.minor}.{version.micro}")
     if not passed:
-        print(f"   ⚠️  Python 3.12+ required, found {version.major}.{version.minor}")
+        print(f"   ️  Python 3.12+ required, found {version.major}.{version.minor}")
     return passed
 
 
@@ -61,7 +61,7 @@ def check_required_packages():
             print(f"{check_mark(passed)} {name:20s} {'installed' if passed else 'MISSING'}")
             results.append(passed)
         except Exception:
-            print(f"❌ {name:20s} MISSING")
+            print(f" {name:20s} MISSING")
             results.append(False)
     
     return all(results)
@@ -127,7 +127,7 @@ def check_environment_config():
     
     # Check if .env exists (optional for demo)
     env_exists = env_file.exists()
-    print(f"{'✅' if env_exists else '⚠️ '} .env file {'exists' if env_exists else 'not found (using defaults)'}")
+    print(f"{'' if env_exists else '️ '} .env file {'exists' if env_exists else 'not found (using defaults)'}")
     
     # Check required env vars from .env.example
     if env_example.exists():
@@ -166,10 +166,10 @@ def check_imports():
     for module, name in modules:
         try:
             __import__(module)
-            print(f"✅ {name:25s} imports successfully")
+            print(f" {name:25s} imports successfully")
             results.append(True)
         except Exception as e:
-            print(f"❌ {name:25s} import failed: {str(e)[:50]}")
+            print(f" {name:25s} import failed: {str(e)[:50]}")
             results.append(False)
     
     return all(results)
@@ -236,7 +236,7 @@ def check_documentation():
         if exists:
             size = Path(path).stat().st_size
             has_content = size > 500
-            print(f"  {'✅' if has_content else '⚠️ '} Size: {size} bytes {'(good)' if has_content else '(too small?)'}")
+            print(f"  {'' if has_content else '️ '} Size: {size} bytes {'(good)' if has_content else '(too small?)'}")
     
     return all(results)
 
@@ -247,9 +247,9 @@ def check_tests():
     
     test_files = list(Path("tests").glob("test_*.py"))
     
-    print(f"✅ Found {len(test_files)} test files")
+    print(f" Found {len(test_files)} test files")
     for test in test_files:
-        print(f"  📝 {test.name}")
+        print(f"   {test.name}")
     
     # Check if conftest exists
     conftest = Path("tests/conftest.py")
@@ -281,7 +281,7 @@ def generate_report():
         try:
             results[name] = check_func()
         except Exception as e:
-            print(f"\n❌ ERROR in {name}: {e}")
+            print(f"\n ERROR in {name}: {e}")
             results[name] = False
     
     # Final summary
@@ -301,11 +301,11 @@ def generate_report():
     print("="*70)
     
     if passed_count == total_count:
-        print("\n✅ SYSTEM VALIDATION COMPLETE - ALL CHECKS PASSED!")
+        print("\n SYSTEM VALIDATION COMPLETE - ALL CHECKS PASSED!")
         print("   Ready for deployment and demonstration.")
         return 0
     else:
-        print(f"\n⚠️  {total_count - passed_count} CHECKS FAILED")
+        print(f"\n️  {total_count - passed_count} CHECKS FAILED")
         print("   Please fix issues before deployment.")
         return 1
 

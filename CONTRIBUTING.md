@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing to the Dealership RAG system! This document provides guidelines for contributing to the project.
 
-## 🎯 How to Contribute
+##  How to Contribute
 
 ### Reporting Bugs
 
@@ -45,7 +45,7 @@ Thank you for your interest in contributing to the Dealership RAG system! This d
    ```
 9. **Create Pull Request** on GitHub
 
-## 📝 Coding Standards
+##  Coding Standards
 
 ### Python Style
 
@@ -93,7 +93,7 @@ async def test_new_feature(sample_data):
     assert result.data is not None
 ```
 
-## 🏗️ Development Setup
+## ️ Development Setup
 
 1. Clone your fork:
    ```bash
@@ -118,7 +118,7 @@ async def test_new_feature(sample_data):
    pre-commit install
    ```
 
-## 🔍 Areas for Contribution
+##  Areas for Contribution
 
 ### High Priority
 
@@ -140,7 +140,7 @@ async def test_new_feature(sample_data):
 
 Check the [Issues page](https://github.com/seanebones-lang/AutoRAG/issues) for bugs labeled `good first issue`.
 
-## 📚 Documentation
+##  Documentation
 
 When adding features:
 
@@ -172,7 +172,7 @@ def function_name(param1: str, param2: int) -> bool:
     """
 ```
 
-## 🎨 Commit Message Guidelines
+##  Commit Message Guidelines
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
@@ -192,14 +192,14 @@ docs: update API examples in README
 test: add tests for hybrid retrieval
 ```
 
-## 🔐 Security
+##  Security
 
 - Never commit API keys or secrets
 - Use environment variables for configuration
 - Report security issues privately to maintainers
 - Follow OWASP security best practices
 
-## 📋 Review Process
+##  Review Process
 
 1. Automated checks must pass (CI/CD)
 2. Code review by maintainer(s)
@@ -208,7 +208,7 @@ test: add tests for hybrid retrieval
 5. Documentation updated
 6. Merge when approved
 
-## 🤝 Code of Conduct
+##  Code of Conduct
 
 - Be respectful and inclusive
 - Focus on constructive feedback
@@ -216,18 +216,18 @@ test: add tests for hybrid retrieval
 - Assume good intentions
 - Keep discussions professional
 
-## 📞 Questions?
+##  Questions?
 
 - Open a GitHub Discussion
 - Comment on relevant issues
 - Reach out to maintainers
 
-## 🏆 Recognition
+##  Recognition
 
 Contributors will be:
 - Listed in CHANGELOG.md
 - Credited in release notes
 - Added to CONTRIBUTORS.md (if created)
 
-Thank you for contributing to Dealership RAG! 🚀
+Thank you for contributing to Dealership RAG! 
 

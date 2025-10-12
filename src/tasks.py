@@ -51,7 +51,7 @@ celery_app.conf.beat_schedule = {
 @celery_app.task(name="src.tasks.sync_dms_inventory")
 def sync_dms_inventory():
     """Scheduled task to sync DMS inventory."""
-    print("🔄 Syncing DMS inventory...")
+    print(" Syncing DMS inventory...")
     # Implementation would go here
     return {"status": "success", "message": "DMS inventory synced"}
 
@@ -59,7 +59,7 @@ def sync_dms_inventory():
 @celery_app.task(name="src.tasks.reindex_documents")
 def reindex_documents():
     """Scheduled task to reindex documents."""
-    print("🔄 Reindexing documents...")
+    print(" Reindexing documents...")
     # Implementation would go here
     return {"status": "success", "message": "Documents reindexed"}
 
@@ -67,7 +67,7 @@ def reindex_documents():
 @celery_app.task(name="src.tasks.process_document")
 def process_document(file_path: str, namespace: str = "default"):
     """Background task to process a document."""
-    print(f"📄 Processing document: {file_path}")
+    print(f" Processing document: {file_path}")
     # Implementation would go here
     return {"status": "success", "file": file_path}
 

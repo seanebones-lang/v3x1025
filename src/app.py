@@ -61,7 +61,7 @@ async def lifespan(app: FastAPI):
     global agentic_rag, ingestion_pipeline, redis_client
     
     # Startup
-    print("🚀 Starting Dealership RAG System...")
+    print(" Starting Dealership RAG System...")
     
     # Initialize components
     agentic_rag = AgenticRAG()
@@ -75,17 +75,17 @@ async def lifespan(app: FastAPI):
             decode_responses=True
         )
         await redis_client.ping()
-        print("✅ Redis connection established")
+        print(" Redis connection established")
     except Exception as e:
-        print(f"⚠️  Redis connection failed: {e}")
+        print(f"️  Redis connection failed: {e}")
         redis_client = None
     
-    print(f"✅ Dealership RAG System v{__version__} ready!")
+    print(f" Dealership RAG System v{__version__} ready!")
     
     yield
     
     # Shutdown
-    print("👋 Shutting down Dealership RAG System...")
+    print(" Shutting down Dealership RAG System...")
     if redis_client:
         await redis_client.close()
 
@@ -498,9 +498,9 @@ Features: {', '.join(vehicle.features)}
         # Index documents
         await agentic_rag.retriever.index_documents(documents, namespace)
         
-        print(f"✅ Synced {len(documents)} vehicles from DMS")
+        print(f" Synced {len(documents)} vehicles from DMS")
     except Exception as e:
-        print(f"❌ DMS sync failed: {e}")
+        print(f" DMS sync failed: {e}")
 
 
 # Root endpoint

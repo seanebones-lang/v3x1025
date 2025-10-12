@@ -14,7 +14,7 @@ from src.agent import AgenticRAG
 
 async def main():
     """Ingest all sample data."""
-    print("🚀 Starting demo data ingestion...")
+    print(" Starting demo data ingestion...")
     print("=" * 60)
     
     # Initialize components
@@ -25,7 +25,7 @@ async def main():
     total_docs = 0
     
     # 1. Ingest sample inventory JSON
-    print("\n📦 Ingesting sample inventory...")
+    print("\n Ingesting sample inventory...")
     inventory_path = Path("data/sample_inventory.json")
     
     if inventory_path.exists():
@@ -65,14 +65,14 @@ Stock #: {vehicle.get('stock_number', 'N/A')}
                 total_chunks += len(chunks)
                 total_docs += 1
             
-            print(f"   ✅ Ingested {total_docs} vehicles")
+            print(f"    Ingested {total_docs} vehicles")
         except Exception as e:
-            print(f"   ❌ Error: {e}")
+            print(f"    Error: {e}")
     else:
-        print(f"   ⚠️  File not found: {inventory_path}")
+        print(f"   ️  File not found: {inventory_path}")
     
     # 2. Ingest FAQs
-    print("\n❓ Ingesting FAQs...")
+    print("\n Ingesting FAQs...")
     faq_path = Path("data/faqs.txt")
     
     if faq_path.exists():
@@ -88,19 +88,19 @@ Stock #: {vehicle.get('stock_number', 'N/A')}
             
             await rag.retriever.index_documents(chunks, namespace="general")
             total_chunks += len(chunks)
-            print(f"   ✅ Ingested FAQs ({len(chunks)} chunks)")
+            print(f"    Ingested FAQs ({len(chunks)} chunks)")
         except Exception as e:
-            print(f"   ❌ Error: {e}")
+            print(f"    Error: {e}")
     else:
-        print(f"   ⚠️  File not found: {faq_path}")
+        print(f"   ️  File not found: {faq_path}")
     
     # Summary
     print("\n" + "=" * 60)
-    print(f"✨ Ingestion Complete!")
+    print(f" Ingestion Complete!")
     print(f"   Total Documents: {total_docs}")
     print(f"   Total Chunks: {total_chunks}")
     print(f"   Indexed in: inventory, general")
-    print("\n💡 Ready to query! Try:")
+    print("\n Ready to query! Try:")
     print("   python scripts/demo_query.py")
     print("=" * 60)
 

@@ -15,26 +15,26 @@ API_BASE_URL = "http://localhost:8000"
 def print_result(query: str, response: Dict[str, Any]):
     """Pretty print query results."""
     print("\n" + "=" * 80)
-    print(f"❓ QUERY: {query}")
+    print(f" QUERY: {query}")
     print("=" * 80)
     
     if response.get("answer"):
-        print(f"\n💬 ANSWER:")
+        print(f"\n ANSWER:")
         print(f"{response['answer']}")
         
         if response.get("intent"):
-            print(f"\n🎯 Intent: {response['intent']}")
+            print(f"\n Intent: {response['intent']}")
         
         if response.get("sources"):
-            print(f"\n📚 SOURCES ({len(response['sources'])}):")
+            print(f"\n SOURCES ({len(response['sources'])}):")
             for i, source in enumerate(response['sources'][:3], 1):
                 print(f"   {i}. {source.get('metadata', {}).get('source', 'Unknown')}")
                 print(f"      Score: {source.get('score', 'N/A')}")
         
         if response.get("query_time_ms"):
-            print(f"\n⚡ Query Time: {response['query_time_ms']:.2f}ms")
+            print(f"\n Query Time: {response['query_time_ms']:.2f}ms")
     else:
-        print(f"\n❌ Error: {response.get('detail', 'Unknown error')}")
+        print(f"\n Error: {response.get('detail', 'Unknown error')}")
 
 
 def check_health() -> bool:
@@ -61,20 +61,20 @@ def query_api(query: str, **kwargs) -> Dict[str, Any]:
 
 def main():
     """Run demo queries."""
-    print("🚀 Dealership RAG System - Demo Queries")
+    print(" Dealership RAG System - Demo Queries")
     print("=" * 80)
     
     # Check if API is running
-    print("\n🔍 Checking API status...")
+    print("\n Checking API status...")
     if not check_health():
-        print("❌ API is not running!")
-        print("\n💡 Start the API first:")
+        print(" API is not running!")
+        print("\n Start the API first:")
         print("   docker-compose up")
         print("   or")
         print("   uvicorn src.app:app --host 0.0.0.0 --port 8000")
         return
     
-    print("✅ API is running!\n")
+    print(" API is running!\n")
     
     # Demo queries covering different intents
     demo_queries = [
@@ -100,7 +100,7 @@ def main():
         },
     ]
     
-    print("📝 Running demo queries...\n")
+    print(" Running demo queries...\n")
     input("Press Enter to start...\n")
     
     for i, demo in enumerate(demo_queries, 1):
@@ -113,16 +113,16 @@ def main():
     
     # Interactive mode
     print("\n" + "=" * 80)
-    print("🎮 Interactive Mode")
+    print(" Interactive Mode")
     print("=" * 80)
     print("Enter your own queries (type 'exit' to quit):\n")
     
     while True:
         try:
-            user_query = input("\n❓ Your query: ").strip()
+            user_query = input("\n Your query: ").strip()
             
             if user_query.lower() in ['exit', 'quit', 'q']:
-                print("\n👋 Goodbye!")
+                print("\n Goodbye!")
                 break
             
             if not user_query:
@@ -132,10 +132,10 @@ def main():
             print_result(user_query, response)
             
         except KeyboardInterrupt:
-            print("\n\n👋 Goodbye!")
+            print("\n\n Goodbye!")
             break
         except Exception as e:
-            print(f"\n❌ Error: {e}")
+            print(f"\n Error: {e}")
 
 
 if __name__ == "__main__":

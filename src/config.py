@@ -122,7 +122,7 @@ async def validate_api_keys_at_startup():
             client = voyageai.Client(api_key=settings.voyage_api_key)
             # Quick test embedding
             await asyncio.to_thread(client.embed, ["test"], model="voyage-3.5-large")
-            logger.info("✅ Voyage API key validated")
+            logger.info(" Voyage API key validated")
         except Exception as e:
             validation_errors.append(f"Voyage API key invalid: {str(e)[:100]}")
     
@@ -137,7 +137,7 @@ async def validate_api_keys_at_startup():
                 max_tokens=10,
                 messages=[{"role": "user", "content": "test"}]
             )
-            logger.info("✅ Anthropic API key validated")
+            logger.info(" Anthropic API key validated")
         except Exception as e:
             validation_errors.append(f"Anthropic API key invalid: {str(e)[:100]}")
     
@@ -147,7 +147,7 @@ async def validate_api_keys_at_startup():
             from pinecone import Pinecone
             pc = Pinecone(api_key=settings.pinecone_api_key)
             pc.list_indexes()
-            logger.info("✅ Pinecone API key validated")
+            logger.info(" Pinecone API key validated")
         except Exception as e:
             validation_errors.append(f"Pinecone API key invalid: {str(e)[:100]}")
     

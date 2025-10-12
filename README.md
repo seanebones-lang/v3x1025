@@ -11,7 +11,7 @@ Built by Sean McDonnell | October 2025
 
 ---
 
-## 🚀 Key Features
+##  Key Features
 
 - **Real-Time DMS Integration**: Adapters for CDK Global, Reynolds & Reynolds, and mock mode for demos
 - **Hybrid Retrieval**: Vector search (Pinecone) + keyword matching (BM25) with Cohere re-ranking
@@ -21,7 +21,7 @@ Built by Sean McDonnell | October 2025
 - **Compliance-Ready**: PII anonymization hooks, GDPR support
 - **Production Patterns**: Docker containerized, full test coverage, CI/CD pipeline, observability
 
-## 📋 Technology Stack
+##  Technology Stack
 
 | Component | Technology | Version | Purpose |
 |-----------|-----------|---------|---------|
@@ -36,7 +36,7 @@ Built by Sean McDonnell | October 2025
 | **Testing** | Pytest | 8.4.2 | Comprehensive test suite |
 | **Infrastructure** | Docker | Latest | Containerized deployment |
 
-## 🏗️ Architecture
+## ️ Architecture
 
 ```
 User Query → Intent Classifier (Claude) → Specialized Agent
@@ -56,7 +56,7 @@ User Query → Intent Classifier (Claude) → Specialized Agent
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
 
-## ⚡ Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -128,7 +128,7 @@ curl -X POST http://localhost:8000/api/query \
   -d '{"query": "What Toyota vehicles are available under $30k?"}'
 ```
 
-## 📖 Usage Examples
+##  Usage Examples
 
 ### Querying the System
 
@@ -194,7 +194,7 @@ response = requests.post(
 )
 ```
 
-## 🧪 Testing
+##  Testing
 
 ```bash
 # Run all tests with coverage
@@ -210,7 +210,7 @@ pytest -m "not slow" -v
 open htmlcov/index.html
 ```
 
-## 🔧 Configuration
+##  Configuration
 
 All configuration is managed through environment variables. See `.env.example` for all options.
 
@@ -239,7 +239,7 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 ```
 
-## 📊 Monitoring & Observability
+##  Monitoring & Observability
 
 ### Health Checks
 
@@ -270,7 +270,7 @@ LANGSMITH_TRACING=true
 SENTRY_DSN=your-sentry-dsn
 ```
 
-## 🔌 API Endpoints
+##  API Endpoints
 
 Full API documentation available at `http://localhost:8000/docs`
 
@@ -293,7 +293,7 @@ Full API documentation available at `http://localhost:8000/docs`
 
 See [docs/API.md](docs/API.md) for detailed API documentation.
 
-## 🗂️ Project Structure
+## ️ Project Structure
 
 ```
 dealership-rag/
@@ -321,7 +321,7 @@ dealership-rag/
 └── requirements.txt      # Python dependencies
 ```
 
-## 🚦 Development Workflow
+##  Development Workflow
 
 ### Adding a New DMS Adapter
 
@@ -351,7 +351,7 @@ self.embeddings = YourEmbeddings(
 )
 ```
 
-## ☁️ Deployment Notes
+## ️ Deployment Notes
 
 ### Cloud Deployment Options
 
@@ -449,7 +449,7 @@ helm install dealership-rag ./k8s/helm-chart \
 - Cache aggressively (Redis) to reduce LLM API calls
 - Use **Pinecone serverless** (pay per use, not per instance)
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### Common Issues
 
@@ -477,7 +477,7 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 # Or create manually via Pinecone console
 ```
 
-## 📈 Performance Optimization
+##  Performance Optimization
 
 - **Caching**: Redis stores query results for 1 hour
 - **Batch Processing**: Embeddings processed in batches of 100
@@ -485,7 +485,7 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 - **Connection Pooling**: Database connections are reused
 - **Streaming**: Long responses streamed to reduce latency
 
-## ⚠️ Known Limitations
+## ️ Known Limitations
 
 - **DMS API Assumptions**: Assumes DMS APIs are open or use simple token auth. Add OAuth2 flow if your DMS requires it.
 - **Embedding Latency**: Default setup uses Voyage API directly. Enable Hosted Inference in Pinecone for 30-50% latency reduction.
@@ -494,7 +494,7 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 - **Context Window**: Claude 4.5 has 1M token context, but cost scales. Consider summarization for very long conversations.
 - **Real-Time Sync**: DMS sync is scheduled (hourly). For true real-time, implement webhooks from your DMS.
 
-## 🔒 Security
+##  Security
 
 - API key authentication via Bearer token
 - Rate limiting (100 requests/minute per IP)
@@ -504,11 +504,11 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 - Environment variable secrets (never commit `.env`)
 - **Security Scanning**: Run `pip install bandit safety` then `bandit -r src/` and `safety check`
 
-## 📄 License
+##  License
 
 MIT License - see [LICENSE](LICENSE) for details
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions welcome! Please:
 
@@ -524,13 +524,13 @@ Focus areas:
 - Test coverage improvements
 - Documentation enhancements
 
-## 📞 Support
+##  Support
 
 - **Issues**: [GitHub Issues](https://github.com/seanebones-lang/AutoRAG/issues)
 - **Documentation**: [docs/](docs/)
 - **API Reference**: `http://localhost:8000/docs`
 
-## 🔮 Post-Handoff Ideas
+##  Post-Handoff Ideas
 
 These are potential enhancements for future iterations (not in current scope):
 
@@ -544,6 +544,6 @@ These are potential enhancements for future iterations (not in current scope):
 
 ---
 
-**Built with precision for automotive excellence** 🚗⚡
+**Built with precision for automotive excellence** 
 
 *Production-ready RAG system following 2025 best practices*
