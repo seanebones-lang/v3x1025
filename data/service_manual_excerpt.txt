@@ -1,0 +1,180 @@
+# Service Manual - Common Procedures
+
+## Oil Change Procedure
+
+### Recommended Intervals
+- Conventional Oil: Every 3,000-5,000 miles
+- Synthetic Blend: Every 5,000-7,500 miles
+- Full Synthetic: Every 7,500-10,000 miles
+- Severe Conditions: Reduce interval by 25%
+
+### Procedure
+1. Warm engine to operating temperature
+2. Lift vehicle on hoist (ensure proper support points)
+3. Locate and remove drain plug (use proper socket size)
+4. Allow oil to drain completely (minimum 5 minutes)
+5. Replace drain plug with new crush washer (torque to spec)
+6. Remove old oil filter (check for debris)
+7. Lubricate new filter gasket with clean oil
+8. Install new filter (hand-tighten plus 3/4 turn)
+9. Add manufacturer-specified oil type and quantity
+10. Start engine and check for leaks
+11. Check oil level after 3-5 minutes
+12. Reset maintenance reminder system
+
+### Common Oil Specifications
+- 0W-20: Most modern Toyota, Honda, Mazda
+- 5W-30: Most domestic vehicles, older imports
+- 5W-40: High-performance applications
+- 0W-40: European vehicles (BMW, Mercedes, Audi)
+
+## Tire Rotation
+
+### Rotation Patterns
+- Front-Wheel Drive: Front to back, cross in rear
+- Rear-Wheel Drive: Cross front to back
+- All-Wheel Drive: X-pattern rotation
+- Directional Tires: Front to back same side only
+
+### Procedure
+1. Check tire pressure when cold
+2. Mark tire positions before removal
+3. Loosen lug nuts before lifting
+4. Lift vehicle using proper jack points
+5. Remove wheels in sequence
+6. Inspect brakes, suspension, and tire condition
+7. Rotate according to pattern
+8. Torque lug nuts to manufacturer spec (typically 80-100 ft-lbs)
+9. Lower vehicle
+10. Final torque check after lowering
+11. Reset tire pressure monitoring system if required
+
+## Brake Inspection
+
+### Inspection Points
+- Brake pad thickness (replace below 3mm)
+- Rotor thickness and condition (check for scoring)
+- Brake fluid level and condition
+- Caliper operation and slide pins
+- Brake lines for leaks or damage
+- Parking brake operation
+
+### Warning Signs
+- Squealing or grinding noises
+- Pulsation when braking
+- Vehicle pulls to one side
+- Brake pedal feels soft or spongy
+- Brake warning light illuminated
+- Burning smell after braking
+
+### Brake Fluid Service
+- Check level every oil change
+- Replace every 2-3 years or 30,000 miles
+- Use DOT 3 or DOT 4 as specified
+- Never mix different types
+- Brake fluid is hygroscopic (absorbs moisture)
+
+## Battery Service
+
+### Testing
+- Visual inspection for corrosion or damage
+- Load test (battery should maintain 9.6V under load)
+- Charging system test (13.5-14.5V at idle)
+- Parasitic draw test (should be under 50mA)
+
+### Maintenance
+- Clean terminals with wire brush and baking soda solution
+- Apply terminal protector after cleaning
+- Check mounting hardware for security
+- Verify proper ventilation around battery
+
+### Replacement Indicators
+- Battery age over 4-5 years
+- Slow cranking in cold weather
+- Dim lights at idle
+- Failed load test
+- Visible swelling or leaking
+
+## Air Filter Replacement
+
+### Inspection Interval
+- Check every oil change
+- Replace every 15,000-30,000 miles
+- More frequent in dusty conditions
+- Inspect after off-road use
+
+### Procedure
+1. Locate air filter housing
+2. Release clips or remove screws
+3. Remove old filter
+4. Clean housing with compressed air or vacuum
+5. Check housing for cracks or damage
+6. Install new filter (ensure proper seating)
+7. Ensure arrows point toward engine
+8. Secure housing cover
+9. Check for proper seal
+
+## Coolant Service
+
+### Service Intervals
+- Check level monthly
+- Replace every 30,000-60,000 miles (varies by type)
+- Extended-life coolant: Up to 100,000 miles
+- Flush if contaminated or wrong type mixed
+
+### Types
+- Green: Traditional ethylene glycol (2-3 year life)
+- Orange (Dex-Cool): 5-year extended life
+- Pink/Blue: Manufacturer-specific formulations
+- Never mix different types
+
+### Procedure
+1. Ensure engine is completely cool
+2. Place drain pan under radiator
+3. Open radiator drain cock or remove lower hose
+4. Allow to drain completely
+5. Close drain and fill with water
+6. Run engine to operating temperature
+7. Drain again (flush process)
+8. Fill with 50/50 coolant mix
+9. Bleed air from system per manufacturer procedure
+10. Check for leaks after reaching operating temperature
+
+## Common Torque Specifications
+
+### Wheel Lug Nuts
+- Compact cars: 80 ft-lbs
+- Midsize cars: 90-100 ft-lbs
+- SUVs/Trucks: 100-140 ft-lbs
+- Always verify in owner's manual
+
+### Oil Drain Plugs
+- Standard: 25-30 ft-lbs
+- Aluminum oil pans: 20-25 ft-lbs
+- Overtightening can strip threads
+
+### Spark Plugs
+- Standard: 15-20 ft-lbs
+- Tapered seat: 7-15 ft-lbs
+- Aluminum heads: Lower end of range
+
+## Safety Reminders
+
+- Always use proper personal protective equipment
+- Ensure vehicle is properly supported before working underneath
+- Never work on hot engines
+- Dispose of fluids properly according to local regulations
+- Consult service manual for vehicle-specific procedures
+- Use factory-specified parts and fluids when possible
+
+## Technical Support
+
+For additional service information:
+- Consult vehicle-specific service manual
+- Contact manufacturer technical support
+- Access online service bulletins
+- Attend factory training courses
+
+Service Manual Version 2025.10
+For Professional Technicians Only
+

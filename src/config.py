@@ -20,12 +20,12 @@ class Settings(BaseSettings):
     )
     
     # API Keys - LLM & Embeddings
-    anthropic_api_key: str = Field(..., description="Anthropic API key for Claude")
-    voyage_api_key: str = Field(..., description="Voyage AI API key for embeddings")
-    cohere_api_key: str = Field(..., description="Cohere API key for re-ranking")
+    anthropic_api_key: str = Field(default="", description="Anthropic API key for Claude")
+    voyage_api_key: str = Field(default="", description="Voyage AI API key for embeddings")
+    cohere_api_key: str = Field(default="", description="Cohere API key for re-ranking")
     
     # Vector Database
-    pinecone_api_key: str = Field(..., description="Pinecone API key")
+    pinecone_api_key: str = Field(default="", description="Pinecone API key")
     pinecone_environment: str = Field(default="us-east-1-aws", description="Pinecone environment")
     pinecone_index_name: str = Field(default="dealership-rag", description="Pinecone index name")
     
@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     celery_result_backend: str = Field(default="redis://localhost:6379/2", description="Celery result backend")
     
     # Application Settings
-    api_secret_key: str = Field(..., description="Secret key for API authentication")
+    api_secret_key: str = Field(default="dev-secret-change-in-production", description="Secret key for API authentication")
     environment: Literal["development", "staging", "production"] = Field(
         default="development",
         description="Application environment"
