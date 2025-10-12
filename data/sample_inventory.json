@@ -1,0 +1,57 @@
+[
+  {
+    "vin": "1HGBH41JXMN109186",
+    "make": "Toyota",
+    "model": "Camry",
+    "year": 2024,
+    "trim": "LE",
+    "mileage": 1500,
+    "price": 28000,
+    "status": "available",
+    "color_exterior": "Silver",
+    "color_interior": "Black",
+    "engine": "2.5L I4",
+    "transmission": "Automatic",
+    "fuel_type": "Gasoline",
+    "features": ["Bluetooth", "Backup Camera", "Apple CarPlay", "Adaptive Cruise Control"],
+    "location": "Main Dealership",
+    "stock_number": "STK1001"
+  },
+  {
+    "vin": "5YJ3E1EA1KF123456",
+    "make": "Tesla",
+    "model": "Model 3",
+    "year": 2023,
+    "trim": "Long Range",
+    "mileage": 12000,
+    "price": 45000,
+    "status": "available",
+    "color_exterior": "Blue",
+    "color_interior": "White",
+    "engine": "Electric Motor",
+    "transmission": "Single-Speed",
+    "fuel_type": "Electric",
+    "features": ["Autopilot", "Premium Audio", "Glass Roof", "Supercharging"],
+    "location": "Main Dealership",
+    "stock_number": "STK1002"
+  },
+  {
+    "vin": "1FTFW1E54KFA12345",
+    "make": "Ford",
+    "model": "F-150",
+    "year": 2023,
+    "trim": "XLT",
+    "mileage": 25000,
+    "price": 42000,
+    "status": "available",
+    "color_exterior": "Black",
+    "color_interior": "Gray",
+    "engine": "3.5L V6",
+    "transmission": "10-Speed Automatic",
+    "fuel_type": "Gasoline",
+    "features": ["4WD", "Tow Package", "Bedliner", "Remote Start"],
+    "location": "Main Dealership",
+    "stock_number": "STK1003"
+  }
+]
+
