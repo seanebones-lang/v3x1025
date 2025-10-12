@@ -36,33 +36,42 @@ def check_python_version():
 
 
 def check_required_packages():
-    """Check if all required packages can be imported."""
-    print_header("Required Packages Check")
+    """Check if requirements.txt is valid and properly configured."""
+    print_header("Requirements Configuration Check")
     
-    packages = [
-        ("langchain", "LangChain"),
-        ("anthropic", "Anthropic"),
-        ("voyageai", "Voyage AI"),
-        ("cohere", "Cohere"),
-        ("pinecone", "Pinecone"),
-        ("fastapi", "FastAPI"),
-        ("uvicorn", "Uvicorn"),
-        ("redis", "Redis"),
-        ("celery", "Celery"),
-        ("pytest", "Pytest"),
-        ("pydantic", "Pydantic"),
+    requirements_file = Path("requirements.txt")
+    
+    if not requirements_file.exists():
+        print("{check_mark(False)} requirements.txt not found")
+        return False
+    
+    print(f"{check_mark(True)} requirements.txt exists")
+    
+    # Parse requirements.txt
+    with open(requirements_file) as f:
+        lines = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+    
+    required_core_packages = [
+        'langchain', 'anthropic', 'voyageai', 'cohere', 'pinecone-client',
+        'fastapi', 'uvicorn', 'redis', 'celery', 'pytest', 'pydantic'
     ]
     
+    found_packages = set()
+    for line in lines:
+        package_name = line.split('==')[0].split('>=')[0].split('[')[0].strip()
+        found_packages.add(package_name)
+    
     results = []
-    for package, name in packages:
-        try:
-            spec = importlib.util.find_spec(package)
-            passed = spec is not None
-            print(f"{check_mark(passed)} {name:20s} {'installed' if passed else 'MISSING'}")
-            results.append(passed)
-        except Exception:
-            print(f" {name:20s} MISSING")
-            results.append(False)
+    for package in required_core_packages:
+        found = package in found_packages
+        print(f"{check_mark(found)} {package:25s} {'specified' if found else 'MISSING'}")
+        results.append(found)
+    
+    # Check version pinning
+    pinned = [line for line in lines if '==' in line]
+    pinned_ratio = len(pinned) / len(lines) if lines else 0
+    print(f"\n{check_mark(pinned_ratio > 0.9)} Version pinning: {len(pinned)}/{len(lines)} packages ({pinned_ratio*100:.0f}%)")
+    results.append(pinned_ratio > 0.9)
     
     return all(results)
 
@@ -256,7 +265,81 @@ def check_tests():
     passed = conftest.exists()
     print(f"{check_mark(passed)} conftest.py exists (test fixtures)")
     
-    return passed and len(test_files) >= 3
+    return passed and len(test_files) >= 5
+
+
+def check_git_repository():
+    """Check git repository integrity."""
+    print_header("Git Repository Integrity Check")
+    
+    import subprocess
+    
+    results = []
+    
+    # Check if in git repo
+    try:
+        subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
+        print(f"{check_mark(True)} Valid git repository")
+        results.append(True)
+    except:
+        print(f"{check_mark(False)} Not a git repository")
+        results.append(False)
+        return False
+    
+    # Check for tags
+    try:
+        tags = subprocess.run(["git", "tag"], capture_output=True, text=True)
+        has_tags = len(tags.stdout.strip()) > 0
+        tag_list = tags.stdout.strip()
+        print(f"{check_mark(has_tags)} Release tags: {tag_list if has_tags else 'none'}")
+        results.append(has_tags)
+    except:
+        print(f"{check_mark(False)} No release tags")
+        results.append(False)
+    
+    # Check commit count
+    try:
+        commits = subprocess.run(["git", "rev-list", "--count", "HEAD"], capture_output=True, text=True)
+        commit_count = int(commits.stdout.strip())
+        has_commits = commit_count >= 10
+        print(f"{check_mark(has_commits)} Commits: {commit_count} (target: >=10)")
+        results.append(has_commits)
+    except:
+        print(f"{check_mark(False)} Cannot count commits")
+        results.append(False)
+    
+    # Check working directory is clean
+    try:
+        status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+        is_clean = len(status.stdout.strip()) == 0
+        print(f"{check_mark(is_clean)} Working directory: {'clean' if is_clean else 'uncommitted changes'}")
+        results.append(is_clean)
+    except:
+        results.append(True)
+    
+    return all(results)
+
+
+def check_security_files():
+    """Check security and governance files."""
+    print_header("Security & Governance Files Check")
+    
+    security_files = [
+        ("SECURITY.md", "Security policy"),
+        ("CONTRIBUTORS.md", "Contributors list"),
+        (".github/pull_request_template.md", "PR template"),
+        (".github/ISSUE_TEMPLATE/bug_report.md", "Bug template"),
+        (".pre-commit-config.yaml", "Pre-commit hooks"),
+        ("pyproject.toml", "Project config"),
+    ]
+    
+    results = []
+    for file_path, description in security_files:
+        exists = Path(file_path).exists()
+        print(f"{check_mark(exists)} {file_path:45s} ({description})")
+        results.append(exists)
+    
+    return all(results)
 
 
 def generate_report():
@@ -267,13 +350,15 @@ def generate_report():
     
     checks = [
         ("Python Version", check_python_version),
-        ("Required Packages", check_required_packages),
+        ("Requirements Configuration", check_required_packages),
         ("Project Structure", check_project_structure),
-        ("Environment Config", check_environment_config),
+        ("Environment Configuration", check_environment_config),
         ("Module Imports", check_imports),
         ("Docker Configuration", check_docker_files),
-        ("Documentation", check_documentation),
-        ("Test Suite", check_tests),
+        ("Documentation Quality", check_documentation),
+        ("Test Suite Presence", check_tests),
+        ("Git Repository Integrity", check_git_repository),
+        ("Security Files Present", check_security_files),
     ]
     
     results = {}
