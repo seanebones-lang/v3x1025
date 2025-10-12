@@ -192,7 +192,8 @@ Your Answer:"""
     @staticmethod
     def _format_context(documents: List[Document]) -> str:
         """
-        Format context documents for the prompt.
+        Format context documents for the prompt with multi-source merging.
+        Merges related documents from same source for concise context.
         
         Args:
             documents: List of Document objects
@@ -203,15 +204,32 @@ Your Answer:"""
         if not documents:
             return "No context documents available."
         
-        context_parts = []
-        
-        for i, doc in enumerate(documents, 1):
+        # Group documents by source for potential merging
+        source_groups = {}
+        for doc in documents:
             source = doc.metadata.get("source", "Unknown")
-            doc_type = doc.metadata.get("document_type", "document")
+            if source not in source_groups:
+                source_groups[source] = []
+            source_groups[source].append(doc)
+        
+        context_parts = []
+        doc_num = 1
+        
+        for source, docs in source_groups.items():
+            doc_type = docs[0].metadata.get("document_type", "document")
             
-            context_parts.append(
-                f"[Document {i} - Source: {source}, Type: {doc_type}]\n{doc.page_content}\n"
-            )
+            # If multiple docs from same source, merge content
+            if len(docs) > 1:
+                merged_content = "\n\n".join([d.page_content for d in docs[:3]])  # Limit to 3 chunks per source
+                context_parts.append(
+                    f"[Document {doc_num} - Source: {source}, Type: {doc_type}, Merged: {len(docs)} chunks]\n{merged_content}\n"
+                )
+                doc_num += 1
+            else:
+                context_parts.append(
+                    f"[Document {doc_num} - Source: {source}, Type: {doc_type}]\n{docs[0].page_content}\n"
+                )
+                doc_num += 1
         
         return "\n---\n".join(context_parts)
     

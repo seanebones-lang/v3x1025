@@ -155,7 +155,7 @@ class HybridRetriever:
         top_k: int
     ) -> List[Document]:
         """
-        Re-rank documents using Cohere Rerank v3.5.
+        Re-rank documents using Cohere Rerank v3.5 with diversity scoring.
         
         Args:
             query: Query text
@@ -189,11 +189,52 @@ class HybridRetriever:
                 original_doc.metadata["rerank_position"] = len(reranked) + 1
                 reranked.append(original_doc)
             
-            return reranked
+            # Apply diversity scoring to avoid redundant sources
+            diverse_results = self._apply_diversity_scoring(reranked, top_k)
+            
+            return diverse_results
         except Exception as e:
             print(f"Reranking error: {e}")
             # Fallback to original order
             return documents[:top_k]
+    
+    @staticmethod
+    def _apply_diversity_scoring(documents: List[Document], top_k: int) -> List[Document]:
+        """
+        Apply diversity scoring to avoid redundant sources.
+        Ensures results come from varied sources when possible.
+        
+        Args:
+            documents: Ranked documents
+            top_k: Number of results desired
+            
+        Returns:
+            Diversified document list
+        """
+        if len(documents) <= top_k:
+            return documents
+        
+        diverse_docs = []
+        seen_sources = set()
+        
+        # First pass: unique sources
+        for doc in documents:
+            source = doc.metadata.get("source", "unknown")
+            if source not in seen_sources:
+                diverse_docs.append(doc)
+                seen_sources.add(source)
+                if len(diverse_docs) >= top_k:
+                    break
+        
+        # Second pass: fill remaining slots with high-scoring duplicates
+        if len(diverse_docs) < top_k:
+            for doc in documents:
+                if doc not in diverse_docs:
+                    diverse_docs.append(doc)
+                    if len(diverse_docs) >= top_k:
+                        break
+        
+        return diverse_docs[:top_k]
     
     def _combine_results(
         self,

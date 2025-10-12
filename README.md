@@ -132,6 +132,7 @@ curl -X POST http://localhost:8000/api/query \
 
 ### Querying the System
 
+**Python:**
 ```python
 import requests
 
@@ -149,6 +150,35 @@ result = response.json()
 print(result["answer"])
 for source in result["sources"]:
     print(f"Source: {source['metadata']['source']}")
+```
+
+**JavaScript/TypeScript (Frontend):**
+```javascript
+// Using fetch API
+const response = await fetch('http://localhost:8000/api/query', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    query: 'Show me electric vehicles with low mileage',
+    include_sources: true,
+    top_k: 5
+  })
+});
+
+const result = await response.json();
+console.log(result.answer);
+result.sources.forEach(source => {
+  console.log(`Source: ${source.metadata.source}`);
+});
+```
+
+**cURL:**
+```bash
+curl -X POST http://localhost:8000/api/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Show me electric vehicles", "include_sources": true}'
 ```
 
 ### Ingesting Documents
@@ -268,6 +298,29 @@ LANGSMITH_TRACING=true
 ```bash
 # Configure in .env
 SENTRY_DSN=your-sentry-dsn
+```
+
+### Prometheus Metrics Export
+
+For teams using Prometheus/Grafana stacks:
+
+```python
+# Add to requirements.txt:
+# prometheus-fastapi-instrumentator==7.0.0
+
+# In src/app.py:
+from prometheus_fastapi_instrumentator import Instrumentator
+
+@app.on_event("startup")
+async def startup():
+    Instrumentator().instrument(app).expose(app)
+
+# Metrics endpoint: http://localhost:8000/metrics
+# Scrape configuration for prometheus.yml:
+# scrape_configs:
+#   - job_name: 'dealership-rag'
+#     static_configs:
+#       - targets: ['api:8000']
 ```
 
 ##  API Endpoints

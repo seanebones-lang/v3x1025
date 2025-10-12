@@ -35,6 +35,14 @@ celery_app.conf.task_routes = {
 # Monitor queue lengths in production:
 # celery -A src.tasks.celery_app inspect active_queues
 
+# For production monitoring, use Flower (Celery web dashboard):
+# pip install flower
+# celery -A src.tasks.celery_app flower --port=5555
+# Access at http://localhost:5555 for real-time task monitoring
+
+# Task revocation for cancellations:
+# celery -A src.tasks.celery_app control revoke TASK_ID --terminate
+
 # Scheduled tasks
 celery_app.conf.beat_schedule = {
     "sync-dms-hourly": {

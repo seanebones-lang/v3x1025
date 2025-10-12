@@ -19,6 +19,11 @@ from langchain_community.document_loaders import (
 # For table-heavy PDFs (contracts, invoices), use Unstructured's table mode
 # from unstructured.partition.pdf import partition_pdf
 # partition_pdf(filename, strategy="hi_res", extract_tables=True)
+
+# For scanned PDFs or images, add OCR fallback:
+# from PIL import Image
+# import pytesseract
+# If PDF parsing fails, try: pytesseract.image_to_string(Image.open(file))
 from langchain.schema import Document
 from sqlalchemy import create_engine, text
 

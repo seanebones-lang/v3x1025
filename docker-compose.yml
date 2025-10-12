@@ -15,10 +15,17 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - rag-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Redis for caching and Celery broker
   redis:
@@ -51,10 +58,16 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - rag-network
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A src.tasks.celery_app inspect ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Celery beat for scheduled tasks
   celery-beat:
@@ -69,7 +82,8 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - rag-network
