@@ -1,6 +1,6 @@
 """
 Mock DMS adapter for demo and testing purposes.
-Generates realistic automotive dealership data.
+Generates realistic automotive dealership data with variance.
 """
 
 import random
@@ -9,6 +9,10 @@ from typing import Dict, List, Optional, Any
 
 from src.dms.base import BaseDMSAdapter
 from src.models import Vehicle
+
+# Optional: Use Faker for more realistic variance
+# from faker import Faker
+# faker = Faker()
 
 
 class MockDMSAdapter(BaseDMSAdapter):
