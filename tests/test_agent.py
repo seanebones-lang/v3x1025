@@ -223,6 +223,82 @@ def test_intent_type_enum():
 
 
 @pytest.mark.asyncio
+async def test_predictive_agent_intent(mock_anthropic_client):
+    """Test predictive agent intent classification and routing."""
+    agent = AgenticRAG()
+    
+    with patch.object(agent.claude, 'messages', mock_anthropic_client.messages):
+        # Mock response for predictive intent
+        mock_anthropic_client.messages.create.return_value = Mock(
+            content=[Mock(text="PREDICTIVE|0.93")]
+        )
+        
+        intent = await agent.classify_intent("What will be the impact of EV tariffs on inventory?")
+        
+        assert intent.intent == "predictive"
+        assert intent.confidence >= 0.9
+
+
+@pytest.mark.asyncio
+async def test_predictive_agent_routing():
+    """Test routing for predictive analytics queries."""
+    agent = AgenticRAG()
+    
+    intent = AgentIntent(intent="predictive", confidence=0.92, sub_intent=None, entities={})
+    
+    result = await agent._route_to_agent("forecast demand", intent)
+    
+    assert result["agent"] == "predictive"
+    assert "forecast_demand" in result["tools_available"]
+    assert result["needs_dms_call"] is False  # Predictive uses analytics, not direct DMS
+
+
+@pytest.mark.asyncio
+async def test_predictive_query_with_cited_forecast(
+    mock_anthropic_client,
+    mock_voyage_client,
+    mock_pinecone_index,
+    mock_dms_adapter
+):
+    """Test predictive query returns cited forecast data."""
+    agent = AgenticRAG()
+    agent.dms_adapter = mock_dms_adapter
+    
+    # Mock predictive context documents
+    forecast_docs = [
+        Mock(
+            page_content="EV vehicle demand projected to increase 35% in Q1 2026 based on market trends.",
+            metadata={"source": "forecast_analysis.pdf", "document_type": "predictive"}
+        )
+    ]
+    
+    with patch.object(agent.claude, 'messages', mock_anthropic_client.messages), \
+         patch.object(agent.retriever.embedding_manager, 'voyage_client', mock_voyage_client), \
+         patch.object(agent.retriever.embedding_manager, 'index', mock_pinecone_index), \
+         patch.object(agent.generator.client, 'messages', mock_anthropic_client.messages):
+        
+        # Mock intent classification as predictive
+        def mock_create_responses(*args, **kwargs):
+            if "PREDICTIVE" in str(args) or "classify" in str(kwargs):
+                return Mock(content=[Mock(text="PREDICTIVE|0.94")])
+            # Mock answer generation with citation
+            return Mock(
+                content=[Mock(text="Based on market analysis, EV demand is projected to increase 35% in Q1 2026 [Source: forecast_analysis.pdf]")],
+                usage=Mock(input_tokens=120, output_tokens=40)
+            )
+        
+        mock_anthropic_client.messages.create.side_effect = mock_create_responses
+        
+        result = await agent.process_query("What is the EV demand forecast for next quarter?")
+        
+        assert "answer" in result
+        assert result["intent"] == "predictive"
+        assert "35%" in result["answer"] or "forecast" in result["answer"].lower()
+        # Should have citation
+        assert "[Source:" in result["answer"] or "source" in result["answer"].lower()
+
+
+@pytest.mark.asyncio
 async def test_process_query_with_conversation_history(
     mock_anthropic_client,
     mock_voyage_client,

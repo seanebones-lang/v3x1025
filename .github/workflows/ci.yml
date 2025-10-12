@@ -39,7 +39,12 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest-xdist
+        pip install pytest-xdist safety
+
+    - name: Security check - Dependencies
+      run: |
+        pip check
+        safety check --json || true
 
     - name: Run linting
       run: |

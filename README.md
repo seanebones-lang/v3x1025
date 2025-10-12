@@ -5,6 +5,7 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.119.0-009688.svg)](https://fastapi.tiangolo.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code Coverage](https://img.shields.io/badge/coverage-80%25+-brightgreen.svg)](https://github.com/seanebones-lang/AutoRAG)
 
 Built by Sean McDonnell | October 2025
 
@@ -350,6 +351,104 @@ self.embeddings = YourEmbeddings(
 )
 ```
 
+## ☁️ Deployment Notes
+
+### Cloud Deployment Options
+
+#### AWS Deployment
+```bash
+# Using ECS Fargate (recommended for autoscaling)
+# 1. Push Docker image to ECR
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin YOUR_ECR_URI
+docker tag dealership-rag:latest YOUR_ECR_URI/dealership-rag:latest
+docker push YOUR_ECR_URI/dealership-rag:latest
+
+# 2. Deploy with ECS service
+aws ecs create-service \
+  --cluster dealership-rag-cluster \
+  --service-name dealership-rag \
+  --task-definition dealership-rag:1 \
+  --desired-count 2 \
+  --launch-type FARGATE \
+  --load-balancers targetGroupArn=YOUR_TG_ARN,containerName=api,containerPort=8000
+
+# 3. Configure autoscaling
+aws application-autoscaling register-scalable-target \
+  --service-namespace ecs \
+  --scalable-dimension ecs:service:DesiredCount \
+  --resource-id service/dealership-rag-cluster/dealership-rag \
+  --min-capacity 2 \
+  --max-capacity 10
+```
+
+**AWS Services Used:**
+- **ECS Fargate** - Serverless container orchestration
+- **Application Load Balancer** - Traffic distribution
+- **ElastiCache Redis** - Caching layer
+- **CloudWatch** - Logging and monitoring
+- **Secrets Manager** - API key management
+
+#### GCP Deployment
+```bash
+# Using Cloud Run (fully managed autoscaling)
+# 1. Push to Container Registry
+gcloud builds submit --tag gcr.io/YOUR_PROJECT/dealership-rag
+
+# 2. Deploy to Cloud Run
+gcloud run deploy dealership-rag \
+  --image gcr.io/YOUR_PROJECT/dealership-rag \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --memory 2Gi \
+  --cpu 2 \
+  --min-instances 1 \
+  --max-instances 10 \
+  --set-env-vars "REDIS_HOST=YOUR_REDIS_IP"
+
+# 3. Autoscaling is automatic (CPU/memory based)
+```
+
+**GCP Services Used:**
+- **Cloud Run** - Fully managed container platform with autoscaling
+- **Memorystore Redis** - Managed Redis for caching
+- **Cloud Logging** - Centralized logging
+- **Secret Manager** - API key storage
+
+#### Kubernetes Deployment
+For large-scale deployments, see `k8s/` directory for Helm charts and manifests.
+
+```bash
+# Deploy with Helm
+helm install dealership-rag ./k8s/helm-chart \
+  --set image.tag=latest \
+  --set autoscaling.enabled=true \
+  --set autoscaling.minReplicas=2 \
+  --set autoscaling.maxReplicas=10
+```
+
+### Autoscaling Recommendations
+
+**Metrics to Monitor:**
+- Request latency (target: <2s)
+- CPU utilization (scale at 70%)
+- Memory usage (scale at 80%)
+- Cache hit rate (optimize at <60%)
+- Error rate (alert at >2%)
+
+**Scaling Strategy:**
+- **Horizontal**: Scale API pods/containers based on request volume
+- **Vertical**: Pinecone auto-scales, no action needed
+- **Cache**: Redis ElastiCache/Memorystore with read replicas
+- **Database**: RDS/Cloud SQL with read replicas if using persistent storage
+
+### Cost Optimization
+
+- Use **spot instances** for non-critical workloads
+- Enable **autoscaling** to scale down during low traffic
+- Cache aggressively (Redis) to reduce LLM API calls
+- Use **Pinecone serverless** (pay per use, not per instance)
+
 ## 🐛 Troubleshooting
 
 ### Common Issues
@@ -431,15 +530,17 @@ Focus areas:
 - **Documentation**: [docs/](docs/)
 - **API Reference**: `http://localhost:8000/docs`
 
-## 🎯 Roadmap
+## 🔮 Post-Handoff Ideas
 
-- [ ] Multimodal support (vehicle images with CLIP)
-- [ ] Voice interface integration
-- [ ] Custom fine-tuned embeddings
-- [ ] Mobile app SDK
-- [ ] Multi-language support
-- [ ] Advanced analytics dashboard
-- [ ] Kubernetes deployment configs
+These are potential enhancements for future iterations (not in current scope):
+
+- [ ] **Multimodal support** - Vehicle image search with CLIP embeddings
+- [ ] **Voice interface** - Speech-to-text integration for hands-free queries
+- [ ] **Custom embeddings** - Fine-tuned automotive domain embeddings
+- [ ] **Mobile SDK** - React Native/Flutter components for dealership apps
+- [ ] **Multi-language** - Spanish/French support for international dealerships
+- [ ] **Analytics dashboard** - Real-time metrics and insights visualization
+- [ ] **Advanced predictive** - Demand forecasting and inventory optimization
 
 ---
 
