@@ -7,6 +7,9 @@ import aiohttp
 from typing import Dict, List, Optional, Any
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+# Note: For OAuth2 authentication with CDK, replace Bearer token with OAuth2 flow:
+# from authlib.integrations.httpx_client import AsyncOAuth2Client
+
 from src.dms.base import BaseDMSAdapter
 from src.models import Vehicle
 
@@ -27,7 +30,11 @@ class CDKAdapter(BaseDMSAdapter):
         self.dealer_id = kwargs.get("dealer_id", "")
         self.timeout = kwargs.get("timeout", 30)
     
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        reraise=True
+    )  # backoff_factor ensures: 2s, 4s, 8s waits
     async def _make_request(
         self,
         method: str,

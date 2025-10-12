@@ -15,12 +15,23 @@ from src.embed import EmbeddingManager
 
 
 class HybridRetriever:
-    """Hybrid retrieval combining vector search, BM25, and re-ranking."""
+    """Hybrid retrieval combining vector search, BM25, and re-ranking with tunable weights."""
     
-    def __init__(self):
-        """Initialize hybrid retriever with vector and keyword search."""
+    def __init__(self, vector_weight: float = 0.6, bm25_weight: float = 0.4):
+        """
+        Initialize hybrid retriever with vector and keyword search.
+        
+        Args:
+            vector_weight: Weight for vector search results (default: 0.6)
+            bm25_weight: Weight for BM25 keyword results (default: 0.4)
+                        Note: Weights should sum to 1.0 for proper RRF scoring
+        """
         self.embedding_manager = EmbeddingManager()
         self.cohere_client = cohere.ClientV2(api_key=settings.cohere_api_key)
+        
+        # Tunable weights for ensemble retrieval (A/B test in production)
+        self.vector_weight = vector_weight
+        self.bm25_weight = bm25_weight
         
         # Cache for BM25 retriever (will be populated with documents)
         self.bm25_retriever: Optional[BM25Retriever] = None
@@ -184,14 +195,14 @@ class HybridRetriever:
             # Fallback to original order
             return documents[:top_k]
     
-    @staticmethod
     def _combine_results(
+        self,
         vector_docs: List[Document],
         bm25_docs: List[Document],
         max_results: int
     ) -> List[Document]:
         """
-        Combine vector and BM25 results using reciprocal rank fusion.
+        Combine vector and BM25 results using weighted reciprocal rank fusion.
         
         Args:
             vector_docs: Documents from vector search
@@ -203,20 +214,20 @@ class HybridRetriever:
         """
         k = 60  # RRF constant
         
-        # Calculate RRF scores
+        # Calculate RRF scores with tunable weights
         scores: Dict[str, float] = {}
         doc_map: Dict[str, Document] = {}
         
-        # Score vector results
+        # Score vector results (with weight)
         for rank, doc in enumerate(vector_docs, 1):
             doc_id = id(doc)
-            scores[doc_id] = scores.get(doc_id, 0) + (1 / (k + rank))
+            scores[doc_id] = scores.get(doc_id, 0) + (self.vector_weight / (k + rank))
             doc_map[doc_id] = doc
         
-        # Score BM25 results
+        # Score BM25 results (with weight)
         for rank, doc in enumerate(bm25_docs, 1):
             doc_id = id(doc)
-            scores[doc_id] = scores.get(doc_id, 0) + (1 / (k + rank))
+            scores[doc_id] = scores.get(doc_id, 0) + (self.bm25_weight / (k + rank))
             if doc_id not in doc_map:
                 doc_map[doc_id] = doc
         

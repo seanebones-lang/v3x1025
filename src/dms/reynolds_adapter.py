@@ -7,6 +7,9 @@ import aiohttp
 from typing import Dict, List, Optional, Any
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+# Note: For OAuth2 authentication with Reynolds, implement OAuth2 client flow:
+# from authlib.integrations.httpx_client import AsyncOAuth2Client
+
 from src.dms.base import BaseDMSAdapter
 from src.models import Vehicle
 

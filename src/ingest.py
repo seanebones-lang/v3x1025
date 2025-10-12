@@ -15,6 +15,10 @@ from langchain_community.document_loaders import (
     TextLoader,
     PyPDFLoader,
 )
+
+# For table-heavy PDFs (contracts, invoices), use Unstructured's table mode
+# from unstructured.partition.pdf import partition_pdf
+# partition_pdf(filename, strategy="hi_res", extract_tables=True)
 from langchain.schema import Document
 from sqlalchemy import create_engine, text
 

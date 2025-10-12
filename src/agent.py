@@ -86,7 +86,7 @@ Example: SALES|0.95"""
     
     async def classify_intent(self, query: str) -> AgentIntent:
         """
-        Classify user query intent.
+        Classify user query intent with Claude fallback to rule-based.
         
         Args:
             query: User query string
@@ -95,13 +95,16 @@ Example: SALES|0.95"""
             AgentIntent object with classification results
         """
         try:
+            # Try Claude-based classification first
             prompt = self.INTENT_CLASSIFICATION_PROMPT.format(query=query)
             
-            response = await self.claude.messages.create(
-                model="claude-4.5-sonnet-20241022",
-                max_tokens=50,
-                messages=[{"role": "user", "content": prompt}]
-            )
+            import asyncio
+            async with asyncio.timeout(5.0):  # Prevent hangs on slow API
+                response = await self.claude.messages.create(
+                    model="claude-4.5-sonnet-20241022",
+                    max_tokens=50,
+                    messages=[{"role": "user", "content": prompt}]
+                )
             
             result = response.content[0].text.strip()
             
@@ -132,13 +135,9 @@ Example: SALES|0.95"""
                 entities={}
             )
         except Exception as e:
-            # Default to general on error
-            return AgentIntent(
-                intent=IntentType.GENERAL.value,
-                confidence=0.5,
-                sub_intent=None,
-                entities={"error": str(e)}
-            )
+            # Fallback to rule-based classification (offline/low-cost mode)
+            logger.warning(f"Claude classification failed, using rule-based fallback: {e}")
+            return self._rule_based_intent_classification(query)
     
     async def process_query(
         self,
@@ -255,7 +254,7 @@ Example: SALES|0.95"""
         intent: AgentIntent
     ) -> Optional[Dict[str, Any]]:
         """
-        Call appropriate DMS tools based on query and intent.
+        Call appropriate DMS tools based on query and intent with timeout protection.
         
         Args:
             query: User query
@@ -269,7 +268,10 @@ Example: SALES|0.95"""
         # Log tool call for production tracing
         logger.info(f"DMS tool call initiated - Intent: {intent_type.value}, Query: {query[:50]}...")
         
+        import asyncio
         try:
+            # Wrap in timeout to prevent hangs on slow DMS
+            async with asyncio.timeout(10.0):  # 10 second timeout for DMS calls
             if intent_type == IntentType.INVENTORY:
                 # Extract vehicle filters from query (simplified)
                 filters = self._extract_vehicle_filters(query)
@@ -297,11 +299,49 @@ Example: SALES|0.95"""
                 }
             
             return None
+        except asyncio.TimeoutError:
+            logger.error(f"DMS tool call timeout after 10s - Intent: {intent_type.value}")
+            return {
+                "tool": "error",
+                "error": "DMS call timeout - slow DMS response"
+            }
         except Exception as e:
+            logger.error(f"DMS tool call error: {e}")
             return {
                 "tool": "error",
                 "error": str(e)
             }
+    
+    def _rule_based_intent_classification(self, query: str) -> AgentIntent:
+        """
+        Fallback rule-based intent classification (offline/low-cost mode).
+        
+        Args:
+            query: User query string
+            
+        Returns:
+            AgentIntent object
+        """
+        query_lower = query.lower()
+        
+        # Sales keywords
+        if any(keyword in query_lower for keyword in ["price", "cost", "finance", "payment", "deal", "buy", "purchase"]):
+            return AgentIntent(intent=IntentType.SALES.value, confidence=0.75, sub_intent="pricing", entities={})
+        
+        # Service keywords
+        if any(keyword in query_lower for keyword in ["service", "repair", "maintenance", "oil change", "tire", "brake", "appointment"]):
+            return AgentIntent(intent=IntentType.SERVICE.value, confidence=0.75, sub_intent="maintenance", entities={})
+        
+        # Inventory keywords
+        if any(keyword in query_lower for keyword in ["available", "stock", "inventory", "have", "show me", "find", "vin"]):
+            return AgentIntent(intent=IntentType.INVENTORY.value, confidence=0.75, sub_intent="availability", entities={})
+        
+        # Predictive keywords
+        if any(keyword in query_lower for keyword in ["forecast", "predict", "trend", "demand", "analytics", "future", "projection"]):
+            return AgentIntent(intent=IntentType.PREDICTIVE.value, confidence=0.75, sub_intent="forecast", entities={})
+        
+        # Default to general
+        return AgentIntent(intent=IntentType.GENERAL.value, confidence=0.6, sub_intent=None, entities={})
     
     @staticmethod
     def _extract_vehicle_filters(query: str) -> Dict[str, Any]:

@@ -49,11 +49,18 @@ Instructions:
 
 Your Answer:"""
     
-    def __init__(self):
-        """Initialize the answer generator with Claude client."""
+    def __init__(self, temperature: float = 0.2):
+        """
+        Initialize the answer generator with Claude client.
+        
+        Args:
+            temperature: Generation temperature (0.0-1.0). Lower = more factual.
+                        Default 0.2 balances naturalness with factual accuracy.
+        """
         self.client = AsyncAnthropic(api_key=settings.anthropic_api_key)
         self.model = "claude-4.5-sonnet-20241022"
         self.max_tokens = settings.max_tokens_generation
+        self.temperature = temperature
     
     async def generate_answer(
         self,
@@ -97,10 +104,11 @@ Your Answer:"""
         })
         
         try:
-            # Call Claude API
+            # Call Claude API with temperature for natural responses
             response = await self.client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
+                temperature=self.temperature,  # 0.2 = factual but natural
                 system=self.SYSTEM_PROMPT,
                 messages=messages
             )

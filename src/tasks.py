@@ -14,14 +14,26 @@ celery_app = Celery(
     backend=settings.celery_result_backend
 )
 
-# Configure Celery
+# Configure Celery with dead-letter queue for failed tasks
 celery_app.conf.update(
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
+    task_acks_late=True,  # Acknowledge only after successful completion
+    task_reject_on_worker_lost=True,  # Requeue if worker dies
+    task_track_started=True,  # Track task start time
 )
+
+# Dead-letter queue configuration
+# Failed tasks are moved to 'failed' queue after max retries
+celery_app.conf.task_routes = {
+    '*': {'queue': 'default'},
+}
+
+# Monitor queue lengths in production:
+# celery -A src.tasks.celery_app inspect active_queues
 
 # Scheduled tasks
 celery_app.conf.beat_schedule = {

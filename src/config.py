@@ -103,3 +103,58 @@ if settings.langsmith_tracing and settings.langsmith_api_key:
     os.environ["LANGCHAIN_API_KEY"] = settings.langsmith_api_key
     os.environ["LANGCHAIN_PROJECT"] = settings.langsmith_project
 
+
+async def validate_api_keys_at_startup():
+    """
+    Validate API keys at startup to fail-fast if misconfigured.
+    Quick ping to each service to ensure connectivity.
+    """
+    import asyncio
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    validation_errors = []
+    
+    # Validate Voyage API
+    if settings.voyage_api_key:
+        try:
+            import voyageai
+            client = voyageai.Client(api_key=settings.voyage_api_key)
+            # Quick test embedding
+            await asyncio.to_thread(client.embed, ["test"], model="voyage-3.5-large")
+            logger.info("✅ Voyage API key validated")
+        except Exception as e:
+            validation_errors.append(f"Voyage API key invalid: {str(e)[:100]}")
+    
+    # Validate Anthropic API
+    if settings.anthropic_api_key:
+        try:
+            from anthropic import AsyncAnthropic
+            client = AsyncAnthropic(api_key=settings.anthropic_api_key)
+            # Quick test call
+            await client.messages.create(
+                model="claude-4.5-sonnet-20241022",
+                max_tokens=10,
+                messages=[{"role": "user", "content": "test"}]
+            )
+            logger.info("✅ Anthropic API key validated")
+        except Exception as e:
+            validation_errors.append(f"Anthropic API key invalid: {str(e)[:100]}")
+    
+    # Validate Pinecone API
+    if settings.pinecone_api_key:
+        try:
+            from pinecone import Pinecone
+            pc = Pinecone(api_key=settings.pinecone_api_key)
+            pc.list_indexes()
+            logger.info("✅ Pinecone API key validated")
+        except Exception as e:
+            validation_errors.append(f"Pinecone API key invalid: {str(e)[:100]}")
+    
+    if validation_errors:
+        logger.error(f"API key validation failed: {', '.join(validation_errors)}")
+        if settings.is_production:
+            raise RuntimeError(f"API key validation failed in production: {validation_errors}")
+    
+    return len(validation_errors) == 0
+

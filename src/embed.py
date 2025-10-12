@@ -6,6 +6,7 @@ Uses Voyage AI for embeddings and Pinecone for vector storage.
 import hashlib
 from typing import List, Dict, Any, Optional
 import asyncio
+from datetime import datetime
 
 from langchain.schema import Document
 from langchain_community.embeddings import VoyageEmbeddings
@@ -136,7 +137,7 @@ class EmbeddingManager:
         namespace: str = "default"
     ) -> Dict[str, int]:
         """
-        Upsert vectors to Pinecone.
+        Upsert vectors to Pinecone with idempotency protection.
         
         Args:
             vectors: List of vector records
@@ -147,6 +148,13 @@ class EmbeddingManager:
         """
         if not vectors:
             return {"upserted_count": 0}
+        
+        # Add idempotency metadata to prevent duplicates on retries
+        for vector in vectors:
+            if "metadata" not in vector:
+                vector["metadata"] = {}
+            vector["metadata"]["upsert_timestamp"] = datetime.now().isoformat()
+            vector["metadata"]["idempotency_key"] = vector["id"]  # Use vector ID as idempotency key
         
         # Batch upsert
         batch_size = 100

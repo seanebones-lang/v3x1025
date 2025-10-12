@@ -51,6 +51,15 @@ tenacity==9.0.0
 tiktoken==0.8.0
 numpy==2.2.1
 pandas==2.2.3
+structlog==24.4.0  # Structured logging for production
+
+# Development Tools
+pre-commit==4.0.1
+mypy==1.13.0
+ruff==0.8.4
+bandit==1.8.0
+safety==3.2.11
+locust==2.32.4  # Load testing
 
 # Security & Compliance
 cryptography==44.0.0

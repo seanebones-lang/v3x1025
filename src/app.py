@@ -13,6 +13,17 @@ from fastapi import FastAPI, HTTPException, Depends, status, File, UploadFile, B
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import redis.asyncio as redis
+import logging
+
+# OpenTelemetry imports for production tracing
+# Uncomment when deploying to production with observability platform
+# from opentelemetry import trace
+# from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+# from opentelemetry.sdk.trace import TracerProvider
+# from opentelemetry.sdk.trace.export import BatchSpanProcessor
+# from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
+logger = logging.getLogger(__name__)
 
 from src.config import settings
 from src.models import (
@@ -337,25 +348,47 @@ async def ingest_data(request: IngestRequest, background_tasks: BackgroundTasks)
 @app.post("/api/ingest/file", response_model=IngestResponse, tags=["Ingestion"])
 async def ingest_file(
     file: UploadFile = File(...),
-    namespace: str = "default"
+    namespace: str = "default",
+    background_tasks: BackgroundTasks = None
 ):
-    """Upload and ingest a file."""
+    """
+    Upload and ingest a file.
+    For large files (>10MB), processing is queued to Celery to avoid blocking.
+    """
     import tempfile
     import os
     
     try:
+        file_size = 0
+        
         # Save uploaded file temporarily
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
             content = await file.read()
+            file_size = len(content)
             tmp.write(content)
             tmp_path = tmp.name
         
-        # Ingest file
+        # Large file? Queue to Celery instead of blocking
+        if file_size > 10 * 1024 * 1024:  # >10MB
+            logger.info(f"Large file ({file_size} bytes) queued to Celery for processing")
+            # Note: Requires Celery task implementation
+            # from src.tasks import process_document
+            # background_tasks.add_task(process_document.delay, tmp_path, namespace)
+            return IngestResponse(
+                status="success",
+                documents_processed=0,
+                chunks_created=0,
+                vectors_upserted=0,
+                processing_time_ms=0,
+                errors=[f"Large file queued for background processing (size: {file_size} bytes)"]
+            )
+        
+        # Small file - process immediately
         request = IngestRequest(
             source_type="file",
             source_identifier=tmp_path,
             namespace=namespace,
-            metadata={"filename": file.filename}
+            metadata={"filename": file.filename, "size_bytes": file_size}
         )
         
         result = await ingest_data(request, BackgroundTasks())

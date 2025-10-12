@@ -53,8 +53,7 @@ jobs:
 
     - name: Run type checking
       run: |
-        pip install mypy
-        mypy src/ --ignore-missing-imports || true
+        mypy src/ --ignore-missing-imports --strict --warn-redundant-casts --warn-unused-ignores || true
 
     - name: Run tests with coverage
       env:
