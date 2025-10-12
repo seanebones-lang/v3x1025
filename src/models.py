@@ -25,13 +25,37 @@ class QueryRequest(BaseModel):
     @field_validator('query')
     @classmethod
     def sanitize_query(cls, v: str) -> str:
-        """Sanitize query input to prevent XSS and injection attacks."""
-        # Remove potentially dangerous characters
-        sanitized = re.sub(r'[<>]', '', v)
+        """
+        Recursive XSS sanitization to prevent nested payload injections.
+        Handles encoded attacks and recursive patterns.
+        """
+        import html
+        
+        # Decode HTML entities recursively (prevents encoded attacks)
+        prev = ""
+        current = v
+        iterations = 0
+        while prev != current and iterations < 5:  # Max 5 iterations to prevent infinite loops
+            prev = current
+            current = html.unescape(current)
+            iterations += 1
+        
+        # Remove dangerous characters and tags
+        sanitized = re.sub(r'[<>]', '', current)
+        
+        # Remove script tags and event handlers (case-insensitive, recursive)
+        sanitized = re.sub(r'<script[^>]*>.*?</script>', '', sanitized, flags=re.IGNORECASE | re.DOTALL)
+        sanitized = re.sub(r'on\w+\s*=', '', sanitized, flags=re.IGNORECASE)
+        
+        # Remove SQL injection patterns
+        sanitized = re.sub(r'(;|\b(DROP|DELETE|INSERT|UPDATE|EXEC|UNION|SELECT)\b)', '', sanitized, flags=re.IGNORECASE)
+        
         # Trim whitespace
         sanitized = sanitized.strip()
+        
         # Remove multiple spaces
         sanitized = re.sub(r'\s+', ' ', sanitized)
+        
         return sanitized
 
 

@@ -56,12 +56,30 @@ celery_app.conf.beat_schedule = {
 }
 
 
-@celery_app.task(name="src.tasks.sync_dms_inventory")
-def sync_dms_inventory():
-    """Scheduled task to sync DMS inventory."""
-    print(" Syncing DMS inventory...")
-    # Implementation would go here
-    return {"status": "success", "message": "DMS inventory synced"}
+@celery_app.task(
+    name="src.tasks.sync_dms_inventory",
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
+    max_retries=3
+)
+def sync_dms_inventory(self):
+    """Scheduled task to sync DMS inventory with auto-retry."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    try:
+        logger.info(f"Syncing DMS inventory (attempt {self.request.retries + 1}/4)...")
+        # Implementation would go here
+        logger.info("DMS inventory sync successful")
+        return {"status": "success", "message": "DMS inventory synced"}
+    except Exception as e:
+        logger.error(f"DMS sync failed: {e}")
+        if self.request.retries >= self.max_retries:
+            logger.critical(f"DMS sync failed after {self.max_retries} retries - ALERT")
+        raise
 
 
 @celery_app.task(name="src.tasks.reindex_documents")

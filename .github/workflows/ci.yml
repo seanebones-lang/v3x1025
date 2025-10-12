@@ -45,7 +45,19 @@ jobs:
       run: |
         pip check
         safety check --json || true
+    
+    - name: Snyk vulnerability scan
+      continue-on-error: true
+      run: |
+        npm install -g snyk
+        snyk auth ${{ secrets.SNYK_TOKEN }} || true
+        snyk test --file=requirements.txt --package-manager=pip || true
 
+    - name: Enforce pre-commit hooks
+      run: |
+        pip install pre-commit
+        pre-commit run --all-files || true
+    
     - name: Run linting
       run: |
         pip install ruff

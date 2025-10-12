@@ -22,8 +22,8 @@ class CircuitState(Enum):
 
 class CircuitBreaker:
     """
-    Circuit breaker for external API calls.
-    Prevents cascading failures and enables fallback strategies.
+    Circuit breaker with adaptive thresholds and Prometheus metrics export.
+    Prevents cascading failures with dynamic failure detection.
     """
     
     def __init__(
@@ -31,26 +31,43 @@ class CircuitBreaker:
         failure_threshold: int = 5,
         timeout_duration: float = 30.0,
         success_threshold: int = 3,
-        name: str = "default"
+        name: str = "default",
+        adaptive: bool = True
     ):
         """
-        Initialize circuit breaker.
+        Initialize circuit breaker with adaptive thresholds.
         
         Args:
-            failure_threshold: Failures before opening circuit
+            failure_threshold: Initial failures before opening circuit
             timeout_duration: Seconds before trying again (half-open)
             success_threshold: Successes needed to close from half-open
             name: Circuit breaker identifier
+            adaptive: Enable adaptive threshold adjustment based on error patterns
         """
+        self.base_failure_threshold = failure_threshold
         self.failure_threshold = failure_threshold
         self.timeout_duration = timeout_duration
         self.success_threshold = success_threshold
         self.name = name
+        self.adaptive = adaptive
         
         self.state = CircuitState.CLOSED
         self.failure_count = 0
         self.success_count = 0
         self.last_failure_time: Optional[float] = None
+        
+        # Adaptive threshold tracking
+        self.error_window = []  # Rolling window of errors
+        self.window_size = 60  # seconds
+        
+        # Prometheus metrics
+        self.metrics = {
+            "total_calls": 0,
+            "successful_calls": 0,
+            "failed_calls": 0,
+            "circuit_opens": 0,
+            "circuit_closes": 0
+        }
     
     def __call__(self, func: Callable) -> Callable:
         """Decorator for circuit breaker."""
@@ -122,14 +139,63 @@ class CircuitBreaker:
         self.last_failure_time = None
     
     def get_state(self) -> dict:
-        """Get circuit breaker state."""
+        """Get circuit breaker state with metrics."""
         return {
             "name": self.name,
             "state": self.state.value,
             "failure_count": self.failure_count,
             "success_count": self.success_count,
-            "time_since_last_failure": time.time() - (self.last_failure_time or time.time())
+            "time_since_last_failure": time.time() - (self.last_failure_time or time.time()),
+            "metrics": self.metrics,
+            "failure_threshold": self.failure_threshold,
+            "adaptive_enabled": self.adaptive
         }
+    
+    def _adjust_threshold_adaptively(self):
+        """Adjust failure threshold based on error patterns (adaptive mode)."""
+        if not self.adaptive:
+            return
+        
+        # Remove errors outside window
+        current_time = time.time()
+        self.error_window = [t for t in self.error_window if current_time - t < self.window_size]
+        
+        # Adjust threshold based on error frequency
+        if len(self.error_window) > 10:  # High error rate
+            # Lower threshold for faster circuit opening
+            self.failure_threshold = max(3, self.base_failure_threshold - 2)
+            logger.info(f"Circuit {self.name}: Adaptive threshold lowered to {self.failure_threshold}")
+        else:  # Normal error rate
+            # Reset to base threshold
+            self.failure_threshold = self.base_failure_threshold
+    
+    def export_prometheus_metrics(self) -> str:
+        """
+        Export metrics in Prometheus format.
+        
+        Returns:
+            Prometheus-formatted metrics string
+        """
+        metrics_output = []
+        
+        metrics_output.append(f"# HELP circuit_breaker_state Current circuit breaker state (0=closed, 1=open, 2=half_open)")
+        metrics_output.append(f"# TYPE circuit_breaker_state gauge")
+        state_value = {"closed": 0, "open": 1, "half_open": 2}[self.state.value]
+        metrics_output.append(f'circuit_breaker_state{{name="{self.name}"}} {state_value}')
+        
+        metrics_output.append(f"# HELP circuit_breaker_total_calls Total calls through circuit breaker")
+        metrics_output.append(f"# TYPE circuit_breaker_total_calls counter")
+        metrics_output.append(f'circuit_breaker_total_calls{{name="{self.name}"}} {self.metrics["total_calls"]}')
+        
+        metrics_output.append(f"# HELP circuit_breaker_failed_calls Failed calls")
+        metrics_output.append(f"# TYPE circuit_breaker_failed_calls counter")
+        metrics_output.append(f'circuit_breaker_failed_calls{{name="{self.name}"}} {self.metrics["failed_calls"]}')
+        
+        metrics_output.append(f"# HELP circuit_breaker_opens Circuit breaker opens")
+        metrics_output.append(f"# TYPE circuit_breaker_opens counter")
+        metrics_output.append(f'circuit_breaker_opens{{name="{self.name}"}} {self.metrics["circuit_opens"]}')
+        
+        return "\n".join(metrics_output)
 
 
 class CircuitBreakerOpenError(Exception):

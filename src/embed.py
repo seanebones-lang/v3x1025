@@ -123,9 +123,13 @@ class EmbeddingManager:
         from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
         import asyncio
         
+        # Adaptive jitter prevents thundering herd on rate limits
+        import random
+        
         @retry(
             stop=stop_after_attempt(5),
-            wait=wait_exponential(multiplier=1, min=2, max=30),
+            wait=wait_exponential(multiplier=1, min=2, max=30) + 
+                 (lambda retry_state: random.uniform(0, 2)),  # Jitter: 0-2s random
             retry_if_exception_type=(Exception,),
             reraise=True
         )

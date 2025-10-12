@@ -98,13 +98,29 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS middleware
+# CORS middleware with production-ready configuration
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Local development
+    "http://localhost:8080",  # Alternative local
+]
+
+# In production, set via environment variable
+if settings.environment == "production":
+    # Production domains only
+    ALLOWED_ORIGINS = [
+        "https://dealership.example.com",
+        "https://api.dealership.example.com"
+    ]
+elif settings.environment == "development":
+    ALLOWED_ORIGINS = ["*"]  # Allow all in development
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Content-Type", "Authorization"],
+    max_age=3600,
 )
 
 
