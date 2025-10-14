@@ -1,0 +1,152 @@
+# Prometheus alerting rules for Blue1 RAG system
+groups:
+- name: blue1-rag-alerts
+  rules:
+  
+  # High-level service health
+  - alert: Blue1APIDown
+    expr: up{job="blue1-rag-api"} == 0
+    for: 30s
+    labels:
+      severity: critical
+      service: blue1-rag
+    annotations:
+      summary: "Blue1 RAG API is down"
+      description: "Blue1 RAG API has been down for more than 30 seconds"
+      
+  - alert: Blue1HighErrorRate
+    expr: rate(http_requests_total{job="blue1-rag-api",status_code=~"5.."}[5m]) / rate(http_requests_total{job="blue1-rag-api"}[5m]) > 0.05
+    for: 2m
+    labels:
+      severity: warning
+      service: blue1-rag
+    annotations:
+      summary: "High error rate in Blue1 RAG API"
+      description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+      
+  # Performance alerts
+  - alert: Blue1HighResponseTime
+    expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="blue1-rag-api"}[5m])) > 5
+    for: 5m
+    labels:
+      severity: warning
+      service: blue1-rag
+    annotations:
+      summary: "High response time in Blue1 RAG API"
+      description: "95th percentile response time is {{ $value }}s over the last 5 minutes"
+      
+  - alert: Blue1RAGQuerySlow
+    expr: histogram_quantile(0.95, rate(rag_query_duration_seconds_bucket[5m])) > 10
+    for: 3m
+    labels:
+      severity: warning
+      service: blue1-rag
+    annotations:
+      summary: "Slow RAG queries detected"
+      description: "95th percentile RAG query time is {{ $value }}s"
+
+  # Resource utilization
+  - alert: Blue1HighMemoryUsage
+    expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.85
+    for: 5m
+    labels:
+      severity: warning
+      service: blue1-rag
+    annotations:
+      summary: "High memory usage on Blue1 system"
+      description: "Memory usage is {{ $value | humanizePercentage }}"
+      
+  - alert: Blue1HighCPUUsage
+    expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+    for: 10m
+    labels:
+      severity: warning
+      service: blue1-rag
+    annotations:
+      summary: "High CPU usage on Blue1 system"
+      description: "CPU usage is {{ $value }}%"
+
+  # Dependencies
+  - alert: ElasticsearchDown
+    expr: up{job="elasticsearch"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: elasticsearch
+    annotations:
+      summary: "Elasticsearch cluster is down"
+      description: "Elasticsearch has been down for more than 1 minute"
+      
+  - alert: RedisDown
+    expr: up{job="redis"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: redis
+    annotations:
+      summary: "Redis cache is down"
+      description: "Redis has been down for more than 1 minute"
+      
+  # Business metrics
+  - alert: Blue1LowCacheHitRate
+    expr: rate(cache_hits_total[10m]) / (rate(cache_hits_total[10m]) + rate(cache_misses_total[10m])) < 0.3
+    for: 5m
+    labels:
+      severity: warning
+      service: blue1-rag
+    annotations:
+      summary: "Low cache hit rate"
+      description: "Cache hit rate is {{ $value | humanizePercentage }} over the last 10 minutes"
+      
+  - alert: Blue1NoRecentQueries
+    expr: rate(rag_queries_total[30m]) == 0
+    for: 30m
+    labels:
+      severity: warning
+      service: blue1-rag
+    annotations:
+      summary: "No RAG queries in the last 30 minutes"
+      description: "System may not be receiving traffic or have an issue"
+
+  # Embedding service alerts
+  - alert: EmbeddingServiceSlow
+    expr: histogram_quantile(0.95, rate(embedding_duration_seconds_bucket[5m])) > 3
+    for: 3m
+    labels:
+      severity: warning
+      service: blue1-embedding
+    annotations:
+      summary: "Embedding service is slow"
+      description: "95th percentile embedding time is {{ $value }}s"
+      
+  # Search performance
+  - alert: VectorSearchSlow
+    expr: histogram_quantile(0.95, rate(vector_search_duration_seconds_bucket[5m])) > 2
+    for: 3m
+    labels:
+      severity: warning
+      service: blue1-search
+    annotations:
+      summary: "Vector search is slow"
+      description: "95th percentile vector search time is {{ $value }}s"
+      
+  - alert: KeywordSearchSlow
+    expr: histogram_quantile(0.95, rate(keyword_search_duration_seconds_bucket[5m])) > 1
+    for: 3m
+    labels:
+      severity: warning
+      service: blue1-search
+    annotations:
+      summary: "Keyword search is slow"
+      description: "95th percentile keyword search time is {{ $value }}s"
+
+  # DMS integration alerts
+  - alert: DMSHighFailureRate
+    expr: rate(dms_request_duration_seconds_count{success="false"}[5m]) / rate(dms_request_duration_seconds_count[5m]) > 0.1
+    for: 2m
+    labels:
+      severity: warning
+      service: blue1-dms
+    annotations:
+      summary: "High DMS failure rate"
+      description: "DMS failure rate is {{ $value | humanizePercentage }} over the last 5 minutes"

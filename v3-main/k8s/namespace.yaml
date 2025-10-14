@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dealership-rag
+  labels:
+    app.kubernetes.io/name: dealership-rag
+    app.kubernetes.io/version: "1.0.0"

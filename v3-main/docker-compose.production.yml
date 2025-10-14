@@ -1,0 +1,284 @@
+# Production Docker Compose for 4-Location Automotive Dealership
+# Handles 400+ concurrent users, 5000+ daily interactions
+version: '3.8'
+
+services:
+  # Load Balancer
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/ssl/certs
+    depends_on:
+      - blue1-api-1
+      - blue1-api-2
+      - blue1-api-3
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+
+  # Blue1 API - Multiple Instances for High Availability
+  blue1-api-1: &blue1-api
+    build: .
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://blue1_user:${DB_PASSWORD}@postgres-master:5432/blue1_production
+      - REDIS_URL=redis-sentinel://redis-sentinel:26379/blue1
+      - ELASTICSEARCH_HOST=elasticsearch-master
+      - ELASTICSEARCH_PORT=9200
+      - DMS_ADAPTER=cdk  # or reynolds
+      - WORKERS=4  # Multiple workers per container
+    depends_on:
+      - postgres-master
+      - redis-master
+      - elasticsearch-master
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"
+        reservations:
+          memory: 2G
+          cpus: "1.0"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  blue1-api-2:
+    <<: *blue1-api
+    
+  blue1-api-3:
+    <<: *blue1-api
+
+  # Production PostgreSQL with Master-Slave Replication
+  postgres-master:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=blue1_production
+      - POSTGRES_USER=blue1_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_REPLICATION_USER=replicator
+      - POSTGRES_REPLICATION_PASSWORD=${REPLICATION_PASSWORD}
+    volumes:
+      - postgres_master_data:/var/lib/postgresql/data
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./postgres/init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: "4.0"
+        reservations:
+          memory: 4G
+          cpus: "2.0"
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+
+  postgres-slave:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=blue1_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_MASTER_SERVICE=postgres-master
+      - POSTGRES_REPLICATION_USER=replicator
+      - POSTGRES_REPLICATION_PASSWORD=${REPLICATION_PASSWORD}
+    volumes:
+      - postgres_slave_data:/var/lib/postgresql/data
+    depends_on:
+      - postgres-master
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: "4.0"
+
+  # Elasticsearch Cluster for Scalable Search
+  elasticsearch-master:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    environment:
+      - node.name=es-master
+      - cluster.name=blue1-cluster
+      - discovery.seed_hosts=elasticsearch-node-1,elasticsearch-node-2
+      - cluster.initial_master_nodes=es-master
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_master_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: "4.0"
+
+  elasticsearch-node-1:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    environment:
+      - node.name=es-node-1
+      - cluster.name=blue1-cluster
+      - discovery.seed_hosts=elasticsearch-master,elasticsearch-node-2
+      - cluster.initial_master_nodes=es-master
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_node1_data:/usr/share/elasticsearch/data
+    depends_on:
+      - elasticsearch-master
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: "4.0"
+
+  elasticsearch-node-2:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    environment:
+      - node.name=es-node-2
+      - cluster.name=blue1-cluster
+      - discovery.seed_hosts=elasticsearch-master,elasticsearch-node-1
+      - cluster.initial_master_nodes=es-master
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_node2_data:/usr/share/elasticsearch/data
+    depends_on:
+      - elasticsearch-master
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: "4.0"
+
+  # Redis Cluster for High-Performance Caching
+  redis-master:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --replica-announce-ip redis-master
+    volumes:
+      - redis_master_data:/data
+    ports:
+      - "6379:6379"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "1.0"
+
+  redis-slave:
+    image: redis:7-alpine
+    command: redis-server --replicaof redis-master 6379 --appendonly yes
+    volumes:
+      - redis_slave_data:/data
+    depends_on:
+      - redis-master
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "1.0"
+
+  redis-sentinel:
+    image: redis:7-alpine
+    command: redis-sentinel /etc/redis/sentinel.conf
+    volumes:
+      - ./redis/sentinel.conf:/etc/redis/sentinel.conf
+    depends_on:
+      - redis-master
+      - redis-slave
+    restart: always
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus-config.yaml:/etc/prometheus/prometheus.yml
+      - ./monitoring/blue1-alerts.yml:/etc/prometheus/blue1-alerts.yml
+      - prometheus_data:/prometheus
+    restart: always
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana-dashboard.json:/etc/grafana/provisioning/dashboards/blue1.json
+      - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    restart: always
+
+  # Backup Service
+  backup:
+    image: prodrigestivill/postgres-backup-local
+    environment:
+      - POSTGRES_HOST=postgres-master
+      - POSTGRES_DB=blue1_production
+      - POSTGRES_USER=blue1_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - BACKUP_KEEP_DAYS=30
+      - BACKUP_KEEP_WEEKS=8
+      - BACKUP_KEEP_MONTHS=6
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      - postgres-master
+    restart: always
+
+volumes:
+  postgres_master_data:
+  postgres_slave_data:
+  elasticsearch_master_data:
+  elasticsearch_node1_data:
+  elasticsearch_node2_data:
+  redis_master_data:
+  redis_slave_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

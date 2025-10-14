@@ -1,0 +1,15 @@
+apiVersion: v2
+name: dealership-rag
+description: Enterprise RAG system for automotive dealerships
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - rag
+  - ai
+  - dealership
+  - automotive
+maintainers:
+  - name: Sean McDonnell
+    email: seanebones@gmail.com
+

@@ -1,0 +1,57 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: rag-api-vs
+  namespace: dealership-rag
+spec:
+  hosts:
+  - rag-api.dealership-rag.svc.cluster.local
+  - api.dealership-rag.com
+  gateways:
+  - rag-gateway
+  - mesh
+  http:
+  - match:
+    - headers:
+        canary:
+          exact: "true"
+    route:
+    - destination:
+        host: rag-api.dealership-rag.svc.cluster.local
+        subset: canary
+      weight: 100
+    fault:
+      delay:
+        fixedDelay: 0.1s
+        percentage:
+          value: 0.1
+  - match:
+    - uri:
+        prefix: /health
+    route:
+    - destination:
+        host: rag-api.dealership-rag.svc.cluster.local
+        subset: stable
+    timeout: 5s
+  - match:
+    - uri:
+        prefix: /query
+    route:
+    - destination:
+        host: rag-api.dealership-rag.svc.cluster.local
+        subset: stable
+      weight: 95
+    - destination:
+        host: rag-api.dealership-rag.svc.cluster.local
+        subset: canary
+      weight: 5
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+  - route:
+    - destination:
+        host: rag-api.dealership-rag.svc.cluster.local
+        subset: stable
+    timeout: 30s
